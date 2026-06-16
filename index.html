@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producer's Harmony Sandbox V2.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            background-color: #0f1115;
+            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .glass-panel {
+            background: rgba(30, 35, 45, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .piano-container {
+            position: relative;
+            height: 200px;
+            white-space: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 20px;
+            user-select: none;
+            scrollbar-width: thin;
+            scrollbar-color: #4B5563 #1F2937;
+        }
+
+        .piano-container::-webkit-scrollbar { height: 8px; }
+        .piano-container::-webkit-scrollbar-track { background: #1F2937; border-radius: 4px; }
+        .piano-container::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
+
+        .key {
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            border-radius: 0 0 6px 6px;
+            cursor: pointer;
+            transition: background-color 0.1s, transform 0.05s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .key-white {
+            background-color: #fdfdfd;
+            border: 1px solid #ccc;
+            height: 180px;
+            width: 40px;
+            z-index: 1;
+        }
+
+        .key-white:active, .key-white.active {
+            background-color: #93C5FD;
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 15px rgba(147, 197, 253, 0.8);
+            border-color: #60A5FA;
+        }
+
+        .key-black {
+            background-color: #1a1a1a;
+            border: 1px solid #000;
+            height: 110px;
+            width: 24px;
+            z-index: 2;
+            box-shadow: inset -2px -2px 4px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        .key-black:active, .key-black.active {
+            background-color: #3B82F6;
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 15px rgba(59, 130, 246, 0.8);
+            border-color: #2563EB;
+        }
+
+        .timeline-chord {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .timeline-chord.playing {
+            transform: scale(1.05) translateY(-2px);
+            border-color: #60A5FA;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        #start-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 12, 16, 0.9);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Range slider styling for FX */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer;
+            background: #374151;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div id="start-overlay">
+        <h1 class="text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500">Harmony Sandbox 2.1</h1>
+        <p class="text-gray-400 mb-2 font-mono text-sm tracking-widest uppercase">Advanced Producer Edition</p>
+        <p class="text-gray-300 mb-8 max-w-md text-center text-sm">Initialize the 16-voice FM audio engine, configure DSP effects, and enable Bluetooth MIDI support.</p>
+        <button id="btn-start" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-lg shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all transform hover:scale-105">
+            Initialize Studio
+        </button>
+    </div>
+
+    <header class="p-4 border-b border-gray-800 bg-gray-900/80 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-tight">Harmony Sandbox</h1>
+            </div>
+            
+            <div class="flex items-center space-x-2 border-l border-gray-700 pl-4">
+                <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Global Key:</label>
+                <select id="global-key" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
+                    <option value="C">C</option>
+                    <option value="C#">C# / Db</option>
+                    <option value="D">D</option>
+                    <option value="D#">D# / Eb</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F# / Gb</option>
+                    <option value="G">G</option>
+                    <option value="G#">G# / Ab</option>
+                    <option value="A">A</option>
+                    <option value="A#">A# / Bb</option>
+                    <option value="B">B</option>
+                </select>
+                <select id="global-scale" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
+                    <option value="Major">Major</option>
+                    <option value="Minor">Minor</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div id="midi-status" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700 shadow-inner">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.8)]" id="midi-indicator"></div>
+                <span class="text-xs font-medium text-gray-300" id="midi-text">MIDI Offline</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10v4a2 2 0 002 2h2.586l3.707 3.707a1 1 0 001.707-.707V4.293a1 1 0 00-1.707-.707L9.586 10H7a2 2 0 00-2 2z"></path></svg>
+                <input type="range" id="master-vol" min="-40" max="0" value="-10" class="w-20">
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 lg:p-6 flex flex-col space-y-6 max-w-[1600px] mx-auto w-full">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Left Column: Diatonic Palette -->
+            <div class="glass-panel p-5 lg:col-span-1 flex flex-col space-y-5">
+                <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-2">Diatonic Palette</h2>
+                
+                <!-- Scale Progressions -->
+                <div>
+                    <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Scale Progressions</h3>
+                    <p class="text-[10px] text-gray-500 mb-2 leading-tight">Inject common progressions mathematically based on your Global Key & Scale.</p>
+                    <div class="flex flex-col space-y-2">
+                        <select id="scale-prog-select" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-xs focus:border-blue-500 cursor-pointer">
+                            <!-- Populated dynamically by JS -->
+                        </select>
+                        <button id="btn-add-scale-prog" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-medium transition text-white shadow-lg shadow-indigo-900/30 text-sm">Inject Progression</button>
+                    </div>
+                </div>
+
+                <!-- Diatonic Chords Palette -->
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Diatonic Chords</h3>
+                        <span id="current-key-label" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded text-blue-400 font-mono border border-gray-600">C Major</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mb-2 leading-tight">Click to inject individual chords from the selected scale.</p>
+                    <div id="diatonic-palette" class="grid grid-cols-4 gap-2">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Column: Timeline -->
+            <div class="glass-panel p-5 lg:col-span-2 flex flex-col space-y-4">
+                <div class="flex justify-between items-end border-b border-gray-700 pb-2">
+                    <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Arrangement Timeline</h2>
+                    <div class="flex space-x-4 items-center">
+                        <label class="text-xs text-gray-400 flex items-center space-x-2">
+                            <span>Left Hand:</span>
+                            <select id="lh-pattern" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-blue-500 cursor-pointer">
+                                <option value="none">None</option>
+                                <option value="root">Root Block</option>
+                                <option value="root5">Root-5th (1/4s)</option>
+                                <option value="bounce">Octave Bounce (1/8s)</option>
+                                <option value="walking">Walking (1/4s)</option>
+                            </select>
+                        </label>
+                        <div class="h-4 w-px bg-gray-700"></div>
+                        <label class="text-xs text-gray-400 flex items-center space-x-2 cursor-pointer">
+                            <span>Arp Mode</span>
+                            <div class="relative inline-block w-8 h-4 rounded-full bg-gray-700">
+                                <input type="checkbox" id="toggle-arp" class="sr-only peer">
+                                <div class="w-4 h-4 rounded-full bg-gray-400 absolute left-0 transition-transform peer-checked:bg-blue-500 peer-checked:translate-x-full"></div>
+                            </div>
+                        </label>
+                        <div class="h-4 w-px bg-gray-700"></div>
+                        <label class="text-xs text-gray-400 flex items-center space-x-1">
+                            <span>BPM:</span>
+                            <input type="number" id="bpm-input" value="110" min="60" max="200" class="w-14 bg-gray-800 border border-gray-600 rounded px-1 py-1 text-white text-center text-sm focus:outline-none">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Timeline Drop Zone -->
+                <div id="timeline" class="min-h-[120px] bg-gray-900/80 rounded-xl p-5 flex flex-wrap gap-4 border border-dashed border-gray-600 items-start content-start relative shadow-inner">
+                    <div id="timeline-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm italic pointer-events-none">
+                        Arrangement is empty. Inject chords or select a preset below.
+                    </div>
+                </div>
+
+                <!-- Transport & Presets -->
+                <div class="flex flex-col space-y-4">
+                    <div class="flex space-x-2">
+                        <button id="btn-play" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded font-bold shadow-lg shadow-emerald-900/30 transition flex justify-center items-center space-x-2">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span>Play Sequence</span>
+                        </button>
+                        <button id="btn-stop" class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2.5 rounded font-bold shadow-lg shadow-rose-900/30 transition flex items-center">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+                        </button>
+                        <button id="btn-clear" class="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2.5 rounded transition text-sm font-medium border border-gray-600">Clear</button>
+                    </div>
+                    
+                    <div class="pt-2 border-t border-gray-800">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-semibold">Categorized Presets</span>
+                        <div class="flex space-x-2">
+                            <select id="preset-select" class="flex-grow bg-gray-800 border border-gray-700 rounded p-2.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer shadow-inner">
+                                <optgroup label="Pop & Contemporary">
+                                    <option value="pop_anthem">Pop Anthem (I-V-vi-IV)</option>
+                                    <option value="pop_80s">80s Synth Pop</option>
+                                    <option value="pop_moody">Moody Pop (vi-IV-I-V)</option>
+                                    <option value="pop_doo_wop">50s Doo-Wop (I-vi-IV-V)</option>
+                                </optgroup>
+                                <optgroup label="Electronic / Dance">
+                                    <option value="house">Deep House</option>
+                                    <option value="futurebass">Future Bass</option>
+                                    <option value="synthwave">Synthwave</option>
+                                    <option value="lofi">Lo-Fi Chill</option>
+                                    <option value="darktrap">Dark Trap</option>
+                                    <option value="drill">UK Drill</option>
+                                </optgroup>
+                                <optgroup label="R&B / Soul">
+                                    <option value="neosoul">Neo-Soul Extensions</option>
+                                    <option value="rnb_modern">Modern R&B</option>
+                                    <option value="rnb_classic">Classic R&B (9ths)</option>
+                                </optgroup>
+                                <optgroup label="Jazz & Blues">
+                                    <option value="jazz_ii_V_I">Jazz Standard (ii-V-I)</option>
+                                    <option value="jazz_minor">Minor Jazz</option>
+                                    <option value="blues_turnaround">Blues Turnaround</option>
+                                </optgroup>
+                                <optgroup label="Cinematic & Orchestral">
+                                    <option value="cinematic_epic">Epic Journey (Minor)</option>
+                                    <option value="cinematic_dark">Dark Tension</option>
+                                    <option value="cinematic_floating">Floating Space (Sus/Add9)</option>
+                                </optgroup>
+                                <optgroup label="Rock & Alternative">
+                                    <option value="rock_classic">Classic Rock (Mixolydian)</option>
+                                    <option value="rock_grunge">90s Grunge</option>
+                                    <option value="rock_alt">Alt Rock Anthem</option>
+                                </optgroup>
+                            </select>
+                            <button id="btn-load-preset" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded font-bold shadow-lg shadow-blue-900/30 transition text-sm">Load</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: FX & Visuals -->
+            <div class="glass-panel p-5 lg:col-span-1 flex flex-col space-y-5">
+                <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-2">Master DSP FX</h2>
+                
+                <!-- Visualizer -->
+                <div class="w-full h-28 bg-[#050505] rounded-lg border border-gray-800 overflow-hidden relative shadow-inner">
+                    <div class="absolute top-2 left-2 text-[9px] text-gray-600 font-mono z-10">OUTPUT OSCILLOSCOPE</div>
+                    <canvas id="oscilloscope" class="w-full h-full block"></canvas>
+                </div>
+
+                <!-- DSP Controls -->
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-blue-400 mb-2">
+                            <span>LPF Cutoff</span> <span id="val-cutoff">20.0 kHz</span>
+                        </div>
+                        <input type="range" id="fx-cutoff" min="200" max="20000" value="20000" class="w-full">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-purple-400 mb-2">
+                            <span>Ping-Pong Delay</span> <span id="val-delay">0%</span>
+                        </div>
+                        <input type="range" id="fx-delay" min="0" max="100" value="0" class="w-full">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-pink-400 mb-2">
+                            <span>Hall Reverb</span> <span id="val-reverb">30%</span>
+                        </div>
+                        <input type="range" id="fx-reverb" min="0" max="100" value="30" class="w-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-5 mt-auto relative">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Virtual Keyboard</h3>
+                <span class="text-xs text-gray-500 font-mono">MIDI CH 1 / QWERTY: A-K</span>
+            </div>
+            
+            <div id="piano" class="piano-container">
+                <!-- Javascript will inject keys here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- Music Theory Engine (Advanced) ---
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const CHORD_INTERVALS = {
+            'Maj': [0, 4, 7],
+            'Min': [0, 3, 7],
+            'Dim': [0, 3, 6],
+            'Aug': [0, 4, 8],
+            'Maj7': [0, 4, 7, 11],
+            'Min7': [0, 3, 7, 10],
+            'Dom7': [0, 4, 7, 10],
+            'Dim7': [0, 3, 6, 9],
+            'HalfDim7': [0, 3, 6, 10],
+            'Maj9': [0, 4, 7, 11, 14],
+            'Min9': [0, 3, 7, 10, 14],
+            'Dom9': [0, 4, 7, 10, 14],
+            'Min11': [0, 3, 7, 10, 14, 17],
+            'Add9': [0, 4, 7, 14],
+            'Sus2': [0, 2, 7],
+            'Sus4': [0, 5, 7]
+        };
+
+        const QWERTY_MAP = {
+            'a': 48, 'w': 49, 's': 50, 'e': 51, 'd': 52, // C3 to E3
+            'f': 53, 't': 54, 'g': 55, 'y': 56, 'h': 57, 'u': 58, 'j': 59, // F3 to B3
+            'k': 60 // C4
+        };
+
+        let synth, reverb, delay, filter, analyzer;
+        let isAudioInitialized = false;
+        let activeNotes = new Set();
+        let progression = []; 
+        let isPlaying = false;
+        let transportEventId = null;
+
+        // --- Core Playback Functions... ---
+        function playNote(midi, vel = 0.8) {
+            activeNotes.add(midi);
+            highlightKey(midi, true);
+            if (isAudioInitialized && synth) {
+                synth.triggerAttack(Tone.Frequency(midi, "midi"), Tone.now(), vel);
+            }
+        }
+
+        function releaseNote(midi) {
+            activeNotes.delete(midi);
+            highlightKey(midi, false);
+            if (isAudioInitialized && synth) {
+                synth.triggerRelease(Tone.Frequency(midi, "midi"), Tone.now() + 0.1);
+            }
+        }
+
+        function playChord(midiArray, duration = "2n") {
+            if (!isAudioInitialized || !synth) return;
+            midiArray.forEach((midi, i) => {
+                const noteTime = Tone.now() + (i * 0.02); // Add slight strum
+                synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), duration, noteTime, 0.7);
+                Tone.Draw.schedule(() => {
+                    highlightKey(midi, true);
+                    setTimeout(() => highlightKey(midi, false), Tone.Time(duration).toMilliseconds());
+                }, noteTime);
+            });
+        }
+
+        // --- Defining Roman Numeral Logic... ---
+        function getRomanNumeral(globalKeyRoot, globalScale, chordRoot, quality) {
+            const globalMidi = NOTES.indexOf(globalKeyRoot);
+            const chordMidi = NOTES.indexOf(chordRoot);
+            let diff = (chordMidi - globalMidi) % 12;
+            if (diff < 0) diff += 12;
+
+            // Diatonic mapping
+            const majorMap = { 0: 'I', 1: 'bII', 2: 'II', 3: 'bIII', 4: 'III', 5: 'IV', 6: 'bV', 7: 'V', 8: 'bVI', 9: 'VI', 10: 'bVII', 11: 'VII' };
+            const minorMap = { 0: 'I', 1: 'bII', 2: 'II', 3: 'III', 4: '#III', 5: 'IV', 6: 'bV', 7: 'V', 8: 'VI', 9: '#VI', 10: 'VII', 11: '#VII' };
+
+            let num = (globalScale === 'Minor') ? minorMap[diff] : majorMap[diff];
+            const isMinor = quality.includes('Min') || quality.includes('Dim') || quality === 'HalfDim7';
+            
+            if (isMinor) num = num.toLowerCase();
+            if (quality.includes('Dim')) num += '°';
+            if (quality.includes('Aug')) num += '+';
+            
+            // Add extensions text for visual clarity
+            if (quality.includes('7')) num += '7';
+            if (quality.includes('9')) num += '9';
+            if (quality.includes('11')) num += '11';
+
+            return num;
+        }
+
+        // Core Midi Utils
+        function getMidiNote(noteName, octave) {
+            const noteIndex = NOTES.indexOf(noteName);
+            return (octave + 1) * 12 + noteIndex;
+        }
+
+        function generateChordMidi(rootNote, octave, quality, inversion) {
+            const rootMidi = getMidiNote(rootNote, parseInt(octave));
+            const intervals = CHORD_INTERVALS[quality];
+            let chordNotes = intervals.map(interval => rootMidi + interval);
+
+            // Modulo safely wraps around if inversion requested exceeds chord notes length
+            const invCount = parseInt(inversion) % chordNotes.length;
+            
+            // For proper voice leading, shift the lowest 'invCount' notes up by an octave (12 semitones)
+            for (let i = 0; i < invCount; i++) {
+                chordNotes[i] += 12;
+            }
+            
+            // Re-sort the array so that arpeggios and block strums always play lowest to highest
+            return chordNotes.sort((a, b) => a - b);
+        }
+
+        // --- Setting up Tone.js Audio Graph... ---
+        async function initAudio() {
+            await Tone.start();
+            
+            // 16-voice FM synth for lush extended chords without voice stealing
+            synth = new Tone.PolySynth(Tone.FMSynth, {
+                maxPolyphony: 16,
+                harmonicity: 3,
+                modulationIndex: 2.5,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.02, decay: 1.5, sustain: 0.2, release: 1.5 },
+                modulation: { type: "square" },
+                modulationEnvelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.4 }
+            });
+
+            // Master DSP Chain
+            filter = new Tone.Filter(20000, "lowpass");
+            
+            delay = new Tone.PingPongDelay("8n", 0.3);
+            delay.wet.value = 0; // Default off
+            
+            reverb = new Tone.Reverb({ decay: 3.5, preDelay: 0.05 });
+            reverb.wet.value = 0.3; // Default 30%
+            await reverb.generate(); // Pre-calculate reverb impulse
+
+            const chorus = new Tone.Chorus(4, 2.5, 0.5).start();
+            chorus.wet.value = 0.15;
+
+            analyzer = new Tone.Analyser("waveform", 512);
+            const compressor = new Tone.Compressor(-20, 3);
+            const masterVol = new Tone.Volume(document.getElementById('master-vol').value);
+
+            // Routing
+            synth.chain(chorus, filter, delay, reverb, compressor, masterVol, analyzer, Tone.Destination);
+            
+            setupEventListeners();
+            drawVisualizer(); // Start animation loop
+
+            isAudioInitialized = true;
+            document.getElementById('start-overlay').style.display = 'none';
+            setupMIDI();
+        }
+
+        document.getElementById('btn-start').addEventListener('click', initAudio);
+
+        // --- Visualizer Rendering Loop... ---
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
+            if (!isAudioInitialized || !analyzer) return;
+
+            const canvas = document.getElementById('oscilloscope');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+
+            // Handle resize dynamically
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+            }
+
+            const data = analyzer.getValue();
+            
+            // Clear background
+            ctx.clearRect(0, 0, width, height);
+
+            // Setup glowing line style
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#60A5FA'; // Tailwind Blue-400
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#3B82F6'; // Tailwind Blue-500
+
+            const sliceWidth = width / data.length;
+            let x = 0;
+
+            for (let i = 0; i < data.length; i++) {
+                // Audio values range from roughly -1.0 to 1.0
+                const v = data[i];
+                // Scale to canvas height (padding it slightly by dividing by 2.5 instead of 2)
+                const y = (v * (height / 2.5)) + (height / 2); 
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                x += sliceWidth;
+            }
+
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset shadow for next frame
+        }
+
+        // --- Building Event Listeners & UI sync... ---
+        function setupEventListeners() {
+            // Master Volume
+            document.getElementById('master-vol').addEventListener('input', (e) => {
+                const node = synth.context.createGain(); // hack to get master volume, using tone volume node
+                Tone.Destination.volume.value = e.target.value;
+            });
+
+            // DSP Sliders
+            document.getElementById('fx-cutoff').addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                filter.frequency.rampTo(val, 0.1);
+                document.getElementById('val-cutoff').innerText = val < 1000 ? `${val} Hz` : `${(val/1000).toFixed(1)} kHz`;
+            });
+            
+            document.getElementById('fx-delay').addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                delay.wet.rampTo(val / 100, 0.1);
+                document.getElementById('val-delay').innerText = `${val}%`;
+            });
+
+            document.getElementById('fx-reverb').addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                reverb.wet.rampTo(val / 100, 0.1);
+                document.getElementById('val-reverb').innerText = `${val}%`;
+            });
+
+            // Global Key Change triggers timeline re-render and scale progression updates
+            document.getElementById('global-key').addEventListener('change', () => {
+                renderTimeline();
+                updateScaleProgressionOptions();
+            });
+            document.getElementById('global-scale').addEventListener('change', () => {
+                renderTimeline();
+                updateScaleProgressionOptions();
+            });
+        }
+
+        function buildPiano() {
+            const container = document.getElementById('piano');
+            container.innerHTML = ''; 
+            
+            const startMidi = 24; // C1 (Expanded for Left Hand Bass)
+            const endMidi = 83;   // B5
+            const whiteKeyWidth = 44;
+            let whiteKeyCount = 0;
+
+            for (let midi = startMidi; midi <= endMidi; midi++) {
+                const noteName = NOTES[midi % 12];
+                const isBlack = noteName.includes('#');
+                
+                const keyEl = document.createElement('div');
+                keyEl.dataset.midi = midi;
+                keyEl.classList.add('key');
+                
+                if (isBlack) {
+                    keyEl.classList.add('key-black');
+                    keyEl.style.left = `${(whiteKeyCount * whiteKeyWidth) - 12}px`;
+                } else {
+                    keyEl.classList.add('key-white');
+                    keyEl.style.left = `${whiteKeyCount * whiteKeyWidth}px`;
+                    whiteKeyCount++;
+                    
+                    if (noteName === 'C') {
+                        const label = document.createElement('span');
+                        label.innerText = `C${Math.floor(midi/12)-1}`;
+                        label.style.cssText = 'position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:10px; color:#888; font-weight:bold;';
+                        keyEl.appendChild(label);
+                    }
+                }
+
+                // Interaction
+                keyEl.addEventListener('mousedown', () => playNote(midi));
+                keyEl.addEventListener('mouseup', () => releaseNote(midi));
+                keyEl.addEventListener('mouseleave', () => { if (activeNotes.has(midi)) releaseNote(midi); });
+                keyEl.addEventListener('touchstart', (e) => { e.preventDefault(); playNote(midi); }, {passive: false});
+                keyEl.addEventListener('touchend', (e) => { e.preventDefault(); releaseNote(midi); }, {passive: false});
+
+                container.appendChild(keyEl);
+            }
+        }
+
+        function highlightKey(midi, isActive) {
+            const keyEl = document.querySelector(`.key[data-midi="${midi}"]`);
+            if (keyEl) {
+                isActive ? keyEl.classList.add('active') : keyEl.classList.remove('active');
+            }
+        }
+        buildPiano();
+
+        // --- Web MIDI API Integration... ---
+        function setupMIDI() {
+            if (navigator.requestMIDIAccess) {
+                navigator.requestMIDIAccess({ sysex: false }).then(onMIDISuccess, onMIDIFailure);
+            } else {
+                updateMIDIStatus("Not Supported", false);
+            }
+        }
+
+        function onMIDISuccess(midiAccess) {
+            updateMIDIStatus("MIDI Connected", true);
+            midiAccess.onstatechange = (e) => {
+                if (e.port.type === "input") updateMIDIStatus(`MIDI ${e.port.state === 'connected' ? 'Connected' : 'Offline'}`, e.port.state === 'connected');
+            };
+            const inputs = midiAccess.inputs.values();
+            for (let input of inputs) input.onmidimessage = handleMIDIMessage;
+        }
+
+        function onMIDIFailure() { updateMIDIStatus("MIDI Denied/Error", false); }
+
+        function updateMIDIStatus(text, isConnected) {
+            document.getElementById('midi-text').innerText = text;
+            const indicator = document.getElementById('midi-indicator');
+            indicator.className = `w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`;
+        }
+
+        function handleMIDIMessage(message) {
+            const [command, note, velocity] = message.data;
+            if (command === 144 && velocity > 0) playNote(note, velocity / 127);
+            else if (command === 128 || (command === 144 && velocity === 0)) releaseNote(note);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat || !isAudioInitialized) return;
+            const midi = QWERTY_MAP[e.key.toLowerCase()];
+            if (midi && !activeNotes.has(midi)) playNote(midi);
+        });
+        window.addEventListener('keyup', (e) => {
+            const midi = QWERTY_MAP[e.key.toLowerCase()];
+            if (midi) releaseNote(midi);
+        });
+
+        // --- Timeline & UI Rendering... ---
+        function renderTimeline() {
+            const timeline = document.getElementById('timeline');
+            const placeholder = document.getElementById('timeline-placeholder');
+            const globalKeyRoot = document.getElementById('global-key').value;
+            const globalScale = document.getElementById('global-scale').value;
+            
+            // Cleanup existing blocks
+            Array.from(timeline.children).forEach(child => {
+                if (child.id !== 'timeline-placeholder') timeline.removeChild(child);
+            });
+
+            if (progression.length === 0) {
+                placeholder.style.display = 'flex';
+                return;
+            }
+            
+            placeholder.style.display = 'none';
+
+            progression.forEach((chordData, index) => {
+                const block = document.createElement('div');
+                block.className = 'timeline-chord bg-gray-800 border border-gray-600 rounded-lg p-3 pt-5 flex flex-col items-center justify-center cursor-pointer min-w-[90px] group relative shadow-md hover:bg-gray-700 mt-2';
+                block.dataset.index = index;
+                
+                // Roman Numeral Badge (Advanced Theory feature)
+                const roman = getRomanNumeral(globalKeyRoot, globalScale, chordData.root, chordData.quality);
+                const badge = document.createElement('div');
+                badge.className = 'absolute -top-3 -left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-900 shadow-md transform -rotate-2';
+                badge.innerText = roman;
+
+                const nameLabel = document.createElement('span');
+                nameLabel.className = 'font-bold text-blue-100 text-lg leading-tight';
+                nameLabel.innerText = `${chordData.root}${chordData.quality}`;
+                
+                const detailLabel = document.createElement('span');
+                detailLabel.className = 'text-[10px] text-gray-400 font-mono mt-1';
+                detailLabel.innerText = `O${chordData.octave} • I${chordData.inversion}`;
+
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                delBtn.className = 'absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    progression.splice(index, 1);
+                    renderTimeline();
+                };
+
+                block.appendChild(badge);
+                block.appendChild(nameLabel);
+                block.appendChild(detailLabel);
+                block.appendChild(delBtn);
+
+                block.addEventListener('click', () => playChord(chordData.midiNotes, "2n"));
+                timeline.appendChild(block);
+            });
+        }
+
+        // --- Sequencer and Transport Loop... ---
+        document.getElementById('btn-play').addEventListener('click', () => {
+            if (!isAudioInitialized || progression.length === 0) return;
+            
+            stopPlayback();
+
+            const bpm = parseInt(document.getElementById('bpm-input').value) || 110;
+            Tone.Transport.bpm.value = bpm;
+            const isArp = document.getElementById('toggle-arp').checked;
+            const lhPattern = document.getElementById('lh-pattern').value;
+
+            let timeOffset = 0;
+            const events = [];
+            const durationPerChord = Tone.Time("1m").toSeconds();
+
+            progression.forEach((chordData, i) => {
+                events.push({ time: timeOffset, chord: chordData, index: i });
+                timeOffset += durationPerChord;
+            });
+
+            Tone.Transport.loopEnd = timeOffset;
+            Tone.Transport.loop = true;
+
+            transportEventId = new Tone.Part((time, value) => {
+                // UI Sync
+                Tone.Draw.schedule(() => {
+                    document.querySelectorAll('.timeline-chord').forEach(el => el.classList.remove('playing'));
+                    const activeBlock = document.querySelector(`.timeline-chord[data-index="${value.index}"]`);
+                    if (activeBlock) activeBlock.classList.add('playing');
+                }, time);
+
+                // --- Left Hand (Bass) Logic ---
+                const rootName = value.chord.root;
+                const quality = value.chord.quality;
+                const bassO1 = getMidiNote(rootName, 1);
+                const bassO2 = getMidiNote(rootName, 2);
+                
+                const playBassNote = (midi, noteTime, duration, vel = 0.7) => {
+                    synth.triggerAttackRelease(Tone.Frequency(midi, "midi"), duration, noteTime, vel);
+                    Tone.Draw.schedule(() => {
+                        highlightKey(midi, true);
+                        setTimeout(() => highlightKey(midi, false), Tone.Time(duration).toMilliseconds() - 20);
+                    }, noteTime);
+                };
+
+                const qTime = Tone.Time("4n").toSeconds();
+                const eTime = Tone.Time("8n").toSeconds();
+
+                if (lhPattern === 'root') {
+                    playBassNote(bassO2, time, "1m", 0.75);
+                } else if (lhPattern === 'root5') {
+                    const fifth = bassO2 + 7;
+                    playBassNote(bassO2, time, "4n", 0.75);
+                    playBassNote(fifth, time + qTime, "4n", 0.6);
+                    playBassNote(bassO2, time + qTime*2, "4n", 0.7);
+                    playBassNote(fifth, time + qTime*3, "4n", 0.6);
+                } else if (lhPattern === 'bounce') {
+                    for(let i=0; i<8; i++) {
+                        const noteTime = time + (i * eTime);
+                        const midi = (i % 2 === 0) ? bassO1 : bassO2;
+                        const vel = (i % 2 === 0) ? 0.8 : 0.6;
+                        playBassNote(midi, noteTime, "8n", vel);
+                    }
+                } else if (lhPattern === 'walking') {
+                    // Calculate diatonic walking bass intervals based on chord quality
+                    const isMinor = quality.includes('Min') || quality.includes('Dim') || quality === 'HalfDim7';
+                    const third = bassO2 + (isMinor ? 3 : 4);
+                    const fifth = bassO2 + (quality.includes('Dim') ? 6 : 7);
+                    const passing = bassO2 + (isMinor ? 10 : 9); // m7 or M6
+                    
+                    playBassNote(bassO2, time, "4n", 0.8);
+                    playBassNote(third, time + qTime, "4n", 0.65);
+                    playBassNote(fifth, time + qTime*2, "4n", 0.7);
+                    playBassNote(passing, time + qTime*3, "4n", 0.65);
+                }
+
+                // --- Right Hand (Chord/Arp) Logic ---
+                if (isArp) {
+                    // Up-Down Arpeggiator pattern
+                    const notes = [...value.chord.midiNotes, ...[...value.chord.midiNotes].reverse().slice(1, -1)];
+                    const stepDur = Tone.Time("16n").toSeconds();
+                    for(let step=0; step < 16; step++) {
+                        const noteToPlay = notes[step % notes.length];
+                        const noteTime = time + (step * stepDur);
+                        // Add slight swing by offsetting every off-beat 16th slightly
+                        const swingAmt = (step % 2 === 1) ? 0.02 : 0; 
+                        
+                        synth.triggerAttackRelease(Tone.Frequency(noteToPlay, "midi"), "16n", noteTime + swingAmt, 0.7);
+                        Tone.Draw.schedule(() => {
+                            highlightKey(noteToPlay, true);
+                            setTimeout(() => highlightKey(noteToPlay, false), stepDur * 1000 - 20);
+                        }, noteTime + swingAmt);
+                    }
+                } else {
+                    // Block Chords with Strum
+                    const strumDelay = 0.025; 
+                    value.chord.midiNotes.forEach((midi, i) => {
+                        const freq = Tone.Frequency(midi, "midi").toFrequency();
+                        const velocity = (i === 0 || i === value.chord.midiNotes.length - 1) ? 0.8 : 0.6;
+                        const noteTime = time + (i * strumDelay);
+                        
+                        synth.triggerAttackRelease(freq, "2n", noteTime, velocity);
+                        Tone.Draw.schedule(() => {
+                            highlightKey(midi, true);
+                            setTimeout(() => highlightKey(midi, false), Tone.Time("2n").toMilliseconds());
+                        }, noteTime);
+                    });
+                }
+            }, events).start(0);
+
+            Tone.Transport.start();
+            isPlaying = true;
+        });
+
+        function stopPlayback() {
+            if (isPlaying) {
+                // Completely kill the transport and all scheduled events to fix preset-switching bugs
+                Tone.Transport.stop();
+                Tone.Transport.cancel(0); 
+                Tone.Transport.position = 0;
+                
+                // Dispose of the part to clear memory
+                if (transportEventId !== null) {
+                    transportEventId.dispose();
+                    transportEventId = null;
+                }
+                
+                // Visual cleanup
+                document.querySelectorAll('.timeline-chord').forEach(el => el.classList.remove('playing'));
+                document.querySelectorAll('.key.active').forEach(el => el.classList.remove('active'));
+                
+                // Audio cleanup
+                synth.releaseAll();
+                activeNotes.clear();
+                isPlaying = false;
+            }
+        }
+
+        document.getElementById('btn-stop').addEventListener('click', stopPlayback);
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            stopPlayback();
+            progression = [];
+            renderTimeline();
+        });
+
+        // --- Scale Progression Generator Logic... ---
+        const DIATONIC_TEMPLATES = {
+            'Major': {
+                'pop_anthem': { label: 'Pop Anthem (I - V - vi - IV)', chords: [{i:0, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:5, q:'Maj'}] },
+                'doo_wop': { label: '50s Doo-Wop (I - vi - IV - V)', chords: [{i:0, q:'Maj'}, {i:9, q:'Min'}, {i:5, q:'Maj'}, {i:7, q:'Maj'}] },
+                'jazz_251': { label: 'Jazz Turnaround (ii7 - V7 - Imaj7)', chords: [{i:2, q:'Min7'}, {i:7, q:'Dom7'}, {i:0, q:'Maj7'}] },
+                'moody_pop': { label: 'Moody Pop (vi - IV - I - V)', chords: [{i:9, q:'Min'}, {i:5, q:'Maj'}, {i:0, q:'Maj'}, {i:7, q:'Maj'}] },
+                'rock_mixolydian': { label: 'Rock Mixolydian (I - bVII - IV)', chords: [{i:0, q:'Maj'}, {i:10, q:'Maj'}, {i:5, q:'Maj'}] },
+                'royal': { label: 'Royal Ascending (I - ii - iii - IV)', chords: [{i:0, q:'Maj'}, {i:2, q:'Min'}, {i:4, q:'Min'}, {i:5, q:'Maj'}] }
+            },
+            'Minor': {
+                'epic_minor': { label: 'Epic Cinematic (i - VI - III - VII)', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:3, q:'Maj'}, {i:10, q:'Maj'}] },
+                'andalusian': { label: 'Andalusian Cadence (i - VII - VI - V)', chords: [{i:0, q:'Min'}, {i:10, q:'Maj'}, {i:8, q:'Maj'}, {i:7, q:'Maj'}] },
+                'dark_trap': { label: 'Dark Trap (i - VI - iv - v)', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:5, q:'Min'}, {i:7, q:'Min'}] },
+                'minor_blues': { label: 'Minor Blues (i - iv - v)', chords: [{i:0, q:'Min'}, {i:5, q:'Min'}, {i:7, q:'Min'}] },
+                'jazz_minor': { label: 'Minor 2-5-1 (ii° - V7 - i)', chords: [{i:2, q:'HalfDim7'}, {i:7, q:'Dom7'}, {i:0, q:'Min9'}] },
+                'pop_minor': { label: 'Pop Minor (i - VII - v - VI)', chords: [{i:0, q:'Min'}, {i:10, q:'Maj'}, {i:7, q:'Min'}, {i:8, q:'Maj'}] }
+            }
+        };
+
+        function updateScaleProgressionOptions() {
+            const scale = document.getElementById('global-scale').value;
+            const keyStr = document.getElementById('global-key').value;
+            const select = document.getElementById('scale-prog-select');
+            select.innerHTML = '';
+            
+            const baseMidi = NOTES.indexOf(keyStr);
+            const templates = DIATONIC_TEMPLATES[scale];
+            
+            for (const [key, data] of Object.entries(templates)) {
+                // Calculate actual chord names to display in the dropdown
+                const chordNames = data.chords.map(c => {
+                    const noteIndex = (baseMidi + c.i) % 12;
+                    let qStr = c.q;
+                    if (qStr === 'Maj') qStr = '';
+                    if (qStr === 'Min') qStr = 'm';
+                    if (qStr === 'Dim') qStr = '°';
+                    if (qStr === 'HalfDim7') qStr = 'm7b5';
+                    if (qStr === 'Dom7') qStr = '7';
+                    if (qStr === 'Min7') qStr = 'm7';
+                    if (qStr === 'Maj7') qStr = 'maj7';
+                    return NOTES[noteIndex] + qStr;
+                }).join('-');
+
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = `${data.label} [${chordNames}]`;
+                select.appendChild(opt);
+            }
+
+            // Update Diatonic Chords Palette
+            const keyLabel = document.getElementById('current-key-label');
+            if (keyLabel) keyLabel.innerText = `${keyStr} ${scale}`;
+            
+            const palette = document.getElementById('diatonic-palette');
+            if (palette) {
+                palette.innerHTML = '';
+                const diatonicSteps = scale === 'Major' 
+                    ? [{i:0, q:'Maj'}, {i:2, q:'Min'}, {i:4, q:'Min'}, {i:5, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:11, q:'Dim'}]
+                    : [{i:0, q:'Min'}, {i:2, q:'Dim'}, {i:3, q:'Maj'}, {i:5, q:'Min'}, {i:7, q:'Min'}, {i:8, q:'Maj'}, {i:10, q:'Maj'}];
+                
+                diatonicSteps.forEach((step) => {
+                    const noteIndex = (baseMidi + step.i) % 12;
+                    const rootName = NOTES[noteIndex];
+                    let displayQ = step.q === 'Maj' ? '' : step.q === 'Min' ? 'm' : '°';
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'bg-gray-700 hover:bg-gray-600 rounded py-1.5 flex flex-col items-center justify-center transition border border-gray-600 active:bg-blue-600 active:border-blue-400';
+                    
+                    const chordSpan = document.createElement('span');
+                    chordSpan.className = 'text-xs font-bold text-white';
+                    chordSpan.innerText = rootName + displayQ;
+                    
+                    const romanSpan = document.createElement('span');
+                    romanSpan.className = 'text-[9px] text-gray-400 font-mono mt-0.5';
+                    romanSpan.innerText = getRomanNumeral(keyStr, scale, rootName, step.q);
+                    
+                    btn.appendChild(chordSpan);
+                    btn.appendChild(romanSpan);
+
+                    btn.onclick = () => {
+                        const octaveOffset = (baseMidi + step.i) >= 12 ? 1 : 0;
+                        const octave = 3 + octaveOffset; // Auto map to default 3rd octave
+                        const midiNotes = generateChordMidi(rootName, octave, step.q, "0");
+                        progression.push({ root: rootName, octave: octave.toString(), quality: step.q, inversion: "0", midiNotes });
+                        renderTimeline();
+                        playChord(midiNotes, "4n"); // Audition it
+                    };
+                    palette.appendChild(btn);
+                });
+            }
+        }
+        
+        // Initialize the dropdown on load
+        updateScaleProgressionOptions();
+
+        document.getElementById('btn-add-scale-prog').addEventListener('click', () => {
+            const scale = document.getElementById('global-scale').value;
+            const keyStr = document.getElementById('global-key').value;
+            const templateKey = document.getElementById('scale-prog-select').value;
+            
+            const baseMidi = NOTES.indexOf(keyStr);
+            const template = DIATONIC_TEMPLATES[scale][templateKey].chords;
+            
+            template.forEach(chordInfo => {
+                const noteIndex = (baseMidi + chordInfo.i) % 12;
+                const noteName = NOTES[noteIndex];
+                
+                // Calculate if we crossed an octave boundry relative to the root
+                const octaveOffset = (baseMidi + chordInfo.i) >= 12 ? 1 : 0;
+                const octave = 3 + octaveOffset; // Base octave is 3
+                
+                // Use a smart default inversion (alternate between root and 1st inversion to voice lead slightly)
+                const inversion = Math.random() > 0.5 ? '1' : '0'; 
+
+                const midiNotes = generateChordMidi(noteName, octave, chordInfo.q, inversion);
+                progression.push({ root: noteName, octave: octave.toString(), quality: chordInfo.q, inversion: inversion, midiNotes });
+            });
+            
+            renderTimeline();
+        });
+
+
+        // --- Advanced Producer Presets... ---
+        const PRESETS = {
+            // POP
+            'pop_anthem': [
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '1' },
+                { root: 'A', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '2' }
+            ],
+            'pop_80s': [
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '2' }
+            ],
+            'pop_moody': [
+                { root: 'A', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '1' }
+            ],
+            'pop_doo_wop': [
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '2' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '1' }
+            ],
+            // ELECTRONIC
+            'house': [
+                { root: 'D', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'F', octave: '3', quality: 'Maj9', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Min9', inversion: '1' },
+                { root: 'A', octave: '2', quality: 'Min11', inversion: '0' }
+            ],
+            'futurebass': [
+                { root: 'F', octave: '2', quality: 'Maj7', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '0' },
+                { root: 'A', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' }
+            ],
+            'synthwave': [
+                { root: 'A', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '1' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '2' }
+            ],
+            'lofi': [
+                { root: 'F', octave: '3', quality: 'Maj7', inversion: '0' },
+                { root: 'E', octave: '3', quality: 'Min7', inversion: '0' },
+                { root: 'D', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj9', inversion: '0' }
+            ],
+            'darktrap': [
+                { root: 'C', octave: '3', quality: 'Min', inversion: '0' },
+                { root: 'G#', octave: '2', quality: 'Maj', inversion: '1' },
+                { root: 'F', octave: '2', quality: 'Min', inversion: '2' },
+                { root: 'G', octave: '2', quality: 'Min', inversion: '0' }
+            ],
+            'drill': [
+                { root: 'C', octave: '3', quality: 'Min', inversion: '0' },
+                { root: 'C#', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Min', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Dim', inversion: '0' }
+            ],
+            // R&B / SOUL
+            'neosoul': [
+                { root: 'E', octave: '3', quality: 'Min11', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Dom9', inversion: '1' },
+                { root: 'D', octave: '3', quality: 'Maj9', inversion: '0' },
+                { root: 'B', octave: '2', quality: 'Min7', inversion: '2' }
+            ],
+            'rnb_modern': [
+                { root: 'D', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Dom9', inversion: '1' },
+                { root: 'C', octave: '3', quality: 'Maj9', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Dom7', inversion: '0' }
+            ],
+            'rnb_classic': [
+                { root: 'A', octave: '2', quality: 'Min9', inversion: '0' },
+                { root: 'D', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj9', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj9', inversion: '0' }
+            ],
+            // JAZZ & BLUES
+            'jazz_ii_V_I': [
+                { root: 'D', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Dom9', inversion: '1' },
+                { root: 'C', octave: '3', quality: 'Maj9', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Dom7', inversion: '0' }
+            ],
+            'jazz_minor': [
+                { root: 'D', octave: '3', quality: 'HalfDim7', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Dom7', inversion: '1' },
+                { root: 'C', octave: '3', quality: 'Min9', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Min9', inversion: '0' }
+            ],
+            'blues_turnaround': [
+                { root: 'C', octave: '3', quality: 'Dom7', inversion: '0' },
+                { root: 'F', octave: '3', quality: 'Dom7', inversion: '2' },
+                { root: 'C', octave: '3', quality: 'Dom7', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Dom7', inversion: '1' }
+            ],
+            // CINEMATIC
+            'cinematic_epic': [
+                { root: 'D', octave: '3', quality: 'Min', inversion: '0' },
+                { root: 'A#', octave: '2', quality: 'Maj', inversion: '1' },
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '2' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' }
+            ],
+            'cinematic_dark': [
+                { root: 'E', octave: '3', quality: 'Min', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '1' },
+                { root: 'D#', octave: '3', quality: 'Aug', inversion: '0' },
+                { root: 'B', octave: '2', quality: 'Min', inversion: '0' }
+            ],
+            'cinematic_floating': [
+                { root: 'C', octave: '3', quality: 'Sus2', inversion: '0' },
+                { root: 'F', octave: '2', quality: 'Add9', inversion: '1' },
+                { root: 'A', octave: '2', quality: 'Min9', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Sus4', inversion: '0' }
+            ],
+            // ROCK & ALT
+            'rock_classic': [
+                { root: 'E', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'D', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Maj', inversion: '1' },
+                { root: 'E', octave: '3', quality: 'Maj', inversion: '0' }
+            ],
+            'rock_grunge': [
+                { root: 'E', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'G', octave: '2', quality: 'Maj', inversion: '0' },
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Maj', inversion: '0' }
+            ],
+            'rock_alt': [
+                { root: 'C', octave: '3', quality: 'Maj', inversion: '0' },
+                { root: 'E', octave: '3', quality: 'Min', inversion: '0' },
+                { root: 'A', octave: '2', quality: 'Min', inversion: '0' },
+                { root: 'F', octave: '2', quality: 'Maj', inversion: '2' }
+            ]
+        };
+
+        document.getElementById('btn-load-preset').addEventListener('click', () => {
+            const type = document.getElementById('preset-select').value;
+            stopPlayback();
+            progression = PRESETS[type].map(p => ({
+                ...p,
+                midiNotes: generateChordMidi(p.root, p.octave, p.quality, p.inversion)
+            }));
+            
+            // Auto-update Global Key and Scale to match the preset's intent for Roman Numerals
+            let targetKey = progression[0].root;
+            let targetScale = 'Major';
+
+            // Heuristics for assigning scale/key to specific presets
+            if (['jazz_ii_V_I', 'lofi', 'rnb_modern', 'rnb_classic', 'pop_anthem'].includes(type)) { targetKey = 'C'; targetScale = 'Major'; }
+            else if (type === 'neosoul') { targetKey = 'D'; targetScale = 'Major'; }
+            else if (['darktrap', 'drill', 'blues_turnaround'].includes(type)) { targetKey = 'C'; targetScale = 'Minor'; }
+            else if (['synthwave', 'pop_moody'].includes(type)) { targetKey = 'A'; targetScale = 'Minor'; }
+            else if (type === 'house') { targetKey = 'D'; targetScale = 'Minor'; } 
+            else if (type === 'cinematic_epic') { targetKey = 'D'; targetScale = 'Minor'; }
+            else if (type === 'cinematic_dark') { targetKey = 'E'; targetScale = 'Minor'; }
+            else if (type === 'rock_classic') { targetKey = 'E'; targetScale = 'Major'; }
+            else if (type === 'rock_grunge') { targetKey = 'E'; targetScale = 'Minor'; }
+            else if (type === 'jazz_minor') { targetKey = 'C'; targetScale = 'Minor'; }
+            
+            document.getElementById('global-key').value = targetKey;
+            document.getElementById('global-scale').value = targetScale;
+            updateScaleProgressionOptions();
+            
+            renderTimeline();
+        });
+
+    </script>
+</body>
+</html>
