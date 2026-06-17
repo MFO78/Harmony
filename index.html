@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Producer's Harmony Sandbox V2.10</title>
+    <title>Producer's Harmony Sandbox V2.11</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
@@ -174,7 +174,7 @@
 
     <div id="start-overlay" class="px-6 text-center">
         <h1 class="text-4xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 tracking-tight">Harmony Sandbox</h1>
-        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.10</p>
+        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.11</p>
         <p class="text-gray-300 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">Initialize the dual synthesis engines, configure spatial effects, and enable hardware acceleration.</p>
         <button id="btn-start" class="btn-interactive px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-lg shadow-[0_0_30px_rgba(37,99,235,0.3)] border border-blue-400/30">
             Initialize Studio
@@ -208,7 +208,7 @@
                     <h3 class="text-xl font-bold text-white mb-2">3. Left Hand & Arp Generators</h3>
                     <p class="mb-2">These modules systematically calculate complex MIDI data driven by your chord definitions.</p>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>Left Hand:</strong> "Root Block" executes sustained fundamentals. "Walking" algorithmically computes diatonic passing intervals.</li>
+                        <li><strong>Left Hand:</strong> "Root Block" executes sustained fundamentals. "Walking" algorithmically computes diatonic passing intervals. Utilise the Octave dropdown to shift the entire bass progression.</li>
                         <li><strong>Arp Mode:</strong> Deconstructs block chords into quantized 16th-note rhythmic sequences.</li>
                     </ul>
                 </section>
@@ -288,17 +288,28 @@
                     <h2 class="text-sm font-extrabold text-white uppercase tracking-widest">Arrangement Sequencer</h2>
                     
                     <div class="flex flex-wrap md:flex-nowrap gap-4 items-center bg-gray-900/40 p-3 rounded-xl border border-gray-800/80 shadow-inner">
+                        
+                        <!-- Left Hand Pattern & Octave Controls -->
                         <div class="flex flex-col space-y-1.5 w-full md:w-auto">
                             <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Left Hand Output</span>
-                            <select id="lh-pattern" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-blue-500 cursor-pointer transition-colors hover:bg-gray-700">
-                                <option value="none">Disabled</option><option value="root">Root Sustained</option>
-                                <option value="root5">Root-5th Alt</option><option value="bounce">Octave Bounce</option>
-                                <option value="walking">Walking Bass</option>
-                            </select>
+                            <div class="flex space-x-2">
+                                <select id="lh-pattern" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-blue-500 cursor-pointer transition-colors hover:bg-gray-700 flex-1">
+                                    <option value="none">Disabled</option><option value="root">Root Sustained</option>
+                                    <option value="root5">Root-5th Alt</option><option value="bounce">Octave Bounce</option>
+                                    <option value="walking">Walking Bass</option>
+                                </select>
+                                <select id="lh-octave" class="bg-gray-800 border border-gray-600 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-blue-500 cursor-pointer transition-colors hover:bg-gray-700 w-[70px]">
+                                    <option value="-1">-1 Oct</option>
+                                    <option value="0" selected>0 Oct</option>
+                                    <option value="1">+1 Oct</option>
+                                    <option value="2">+2 Oct</option>
+                                </select>
+                            </div>
                         </div>
                         
                         <div class="hidden md:block h-10 w-px bg-gray-700/50"></div>
                         
+                        <!-- Arpeggiator Controls -->
                         <div class="flex flex-col space-y-1.5">
                             <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Arpeggiator</span>
                             <div class="flex items-center space-x-3 bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5">
@@ -306,9 +317,12 @@
                                     <input type="checkbox" id="toggle-arp" class="sr-only peer">
                                     <div class="w-8 h-4 bg-gray-900 shadow-inner rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-blue-600"></div>
                                 </label>
+                                <!-- FIXED DROPDOWN BG FOR VISIBILITY -->
                                 <select id="arp-pattern" class="bg-transparent text-white text-[11px] font-mono focus:outline-none cursor-pointer w-16">
-                                    <option value="up">UP</option><option value="down">DOWN</option>
-                                    <option value="updown">U/D</option><option value="random">RND</option>
+                                    <option value="up" class="bg-gray-800">UP</option>
+                                    <option value="down" class="bg-gray-800">DOWN</option>
+                                    <option value="updown" class="bg-gray-800">U/D</option>
+                                    <option value="random" class="bg-gray-800">RND</option>
                                 </select>
                             </div>
                         </div>
@@ -329,7 +343,9 @@
                 <div class="flex flex-col space-y-5">
                     <div class="flex space-x-3">
                         <button id="btn-play" class="btn-interactive flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold shadow-[0_4px_15px_rgba(5,150,105,0.3)] flex justify-center items-center space-x-2">
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Play Sequence</span>
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span class="hidden md:inline">Play Sequence</span>
+                            <span class="md:hidden">Play</span>
                         </button>
                         <button id="btn-stop" class="btn-interactive bg-rose-600 hover:bg-rose-500 text-white px-8 py-4 rounded-xl font-bold shadow-[0_4px_15px_rgba(225,29,72,0.3)] flex items-center">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
@@ -479,11 +495,15 @@
                 envelope: { attack: 0.05, decay: 0.5, sustain: 0.4, release: 1.5 } 
             });
             
-            synthBass = new Tone.PolySynth(Tone.Synth, { 
+            synthBass = new Tone.PolySynth(Tone.AMSynth, { 
                 maxPolyphony: 4, 
-                oscillator: { type: "sine" }, 
+                harmonicity: 0.5,
+                oscillator: { type: "triangle" }, 
+                modulation: { type: "sine" },
                 envelope: { attack: 0.05, decay: 0.3, sustain: 0.6, release: 0.8 } 
             });
+
+            const bassFilter = new Tone.Filter(600, "lowpass");
 
             volChords = new Tone.Volume(document.getElementById('vol-chords').value);
             volBass = new Tone.Volume(document.getElementById('vol-bass').value);
@@ -499,7 +519,7 @@
             masterLimiter = new Tone.Limiter(-2);
 
             synthChords.chain(tremolo, chorus, filter, delay, reverb, volChords, analyzer, masterLimiter, Tone.Destination);
-            synthBass.chain(volBass, masterLimiter, Tone.Destination);
+            synthBass.chain(bassFilter, volBass, masterLimiter, Tone.Destination);
             
             setupEventListeners(); drawVisualizer();
             isAudioInitialized = true; document.getElementById('start-overlay').style.display = 'none';
@@ -547,10 +567,11 @@
             const isArp = document.getElementById('toggle-arp').checked;
             const arpPattern = document.getElementById('arp-pattern').value;
             const lhPattern = document.getElementById('lh-pattern').value;
+            const lhOctave = parseInt(document.getElementById('lh-octave').value) || 0;
             
             let timeOffset = 0; 
             progression.forEach((chordData, i) => {
-                transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern });
+                transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern, lhOctave: lhOctave });
                 timeOffset += Tone.Time(chordData.duration).toSeconds();
             });
             Tone.Transport.loopEnd = timeOffset;
@@ -569,6 +590,7 @@
             document.getElementById('toggle-arp').addEventListener('change', hotSwapSequence);
             document.getElementById('arp-pattern').addEventListener('change', hotSwapSequence);
             document.getElementById('lh-pattern').addEventListener('change', hotSwapSequence);
+            document.getElementById('lh-octave').addEventListener('change', hotSwapSequence);
             document.getElementById('bpm-input').addEventListener('change', (e) => Tone.Transport.bpm.value = e.target.value);
 
             window.addEventListener('keydown', (e) => { if (e.repeat || !isAudioInitialized) return; const midi = QWERTY_MAP[e.key.toLowerCase()]; if (midi && !activeNotes.has(midi)) playNote(midi); });
@@ -672,7 +694,10 @@
                 'pop_anthem': { label: 'Pop Anthem', chords: [{i:0, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:5, q:'Maj'}], type: 'Major' },
                 'pop_80s': { label: '80s Synth Pop', chords: [{i:5, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:0, q:'Maj'}], type: 'Major' },
                 'moody_pop': { label: 'Moody Pop', chords: [{i:9, q:'Min'}, {i:5, q:'Maj'}, {i:0, q:'Maj'}, {i:7, q:'Maj'}], type: 'Major' },
-                'doo_wop': { label: '50s Doo-Wop', chords: [{i:0, q:'Maj'}, {i:9, q:'Min'}, {i:5, q:'Maj'}, {i:7, q:'Maj'}], type: 'Major' }
+                'doo_wop': { label: '50s Doo-Wop', chords: [{i:0, q:'Maj'}, {i:9, q:'Min'}, {i:5, q:'Maj'}, {i:7, q:'Maj'}], type: 'Major' },
+                'royal_road': { label: 'Royal Road (Anime/Pop)', chords: [{i:5, q:'Maj7'}, {i:7, q:'Dom7'}, {i:4, q:'Min7'}, {i:9, q:'Min7'}], type: 'Major' },
+                'pachelbel': { label: 'Pachelbel Drop', chords: [{i:0, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:4, q:'Min'}], type: 'Major' },
+                'aeolian_shuttle': { label: 'Aeolian Shuttle', chords: [{i:0, q:'Min'}, {i:10, q:'Maj'}, {i:8, q:'Maj'}, {i:10, q:'Maj'}], type: 'Minor' }
             },
             'Electronic / Dance': {
                 'house': { label: 'Deep House (Ext)', chords: [{i:0, q:'Min9'}, {i:3, q:'Maj9'}, {i:10, q:'Min9'}, {i:7, q:'Min11'}], type: 'Minor' },
@@ -680,26 +705,39 @@
                 'synthwave': { label: 'Synthwave', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:3, q:'Maj'}, {i:10, q:'Maj'}], type: 'Minor' },
                 'lofi': { label: 'Lo-Fi Chill', chords: [{i:5, q:'Maj7'}, {i:4, q:'Min7'}, {i:2, q:'Min9'}, {i:0, q:'Maj9'}], type: 'Major' },
                 'darktrap': { label: 'Dark Trap', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:5, q:'Min'}, {i:7, q:'Min'}], type: 'Minor' },
-                'drill': { label: 'UK Drill Tension', chords: [{i:0, q:'Min'}, {i:1, q:'Maj'}, {i:0, q:'Min'}, {i:7, q:'Dim'}], type: 'Minor' }
+                'drill': { label: 'UK Drill Tension', chords: [{i:0, q:'Min'}, {i:1, q:'Maj'}, {i:0, q:'Min'}, {i:7, q:'Dim'}], type: 'Minor' },
+                'detroit_minor': { label: 'Detroit Tech', chords: [{i:0, q:'Min7'}, {i:7, q:'Min7'}, {i:5, q:'Min7'}, {i:0, q:'Min7'}], type: 'Minor' },
+                'phrygian_trap': { label: 'Phrygian Trap', chords: [{i:0, q:'Min'}, {i:1, q:'Maj'}, {i:3, q:'Maj'}, {i:1, q:'Maj'}], type: 'Minor' }
             },
             'R&B / Soul': {
                 'neosoul': { label: 'Neo-Soul', chords: [{i:2, q:'Min11'}, {i:9, q:'Dom9'}, {i:0, q:'Maj9'}, {i:11, q:'Min7'}], type: 'Major' },
                 'rnb_modern': { label: 'Modern R&B', chords: [{i:2, q:'Min9'}, {i:7, q:'Dom9'}, {i:0, q:'Maj9'}, {i:9, q:'Dom7'}], type: 'Major' },
-                'rnb_classic': { label: 'Classic R&B', chords: [{i:9, q:'Min9'}, {i:2, q:'Min9'}, {i:7, q:'Maj9'}, {i:0, q:'Maj9'}], type: 'Major' }
+                'rnb_classic': { label: 'Classic R&B', chords: [{i:9, q:'Min9'}, {i:2, q:'Min9'}, {i:7, q:'Maj9'}, {i:0, q:'Maj9'}], type: 'Major' },
+                'rnb_loop': { label: 'The R&B Loop', chords: [{i:0, q:'Maj7'}, {i:5, q:'Maj7'}, {i:4, q:'Min7'}, {i:9, q:'Min7'}], type: 'Major' },
+                'neo_church': { label: 'Churchy Soul', chords: [{i:5, q:'Maj7'}, {i:7, q:'Sus4'}, {i:4, q:'Min7'}, {i:9, q:'Min7'}], type: 'Major' },
+                'sliding_soul': { label: 'Smooth Slider', chords: [{i:0, q:'Maj7'}, {i:4, q:'Min7'}, {i:5, q:'Maj7'}, {i:5, q:'Min7'}], type: 'Major' },
+                'rnb_minor_walk': { label: 'R&B Minor Walk', chords: [{i:0, q:'Min9'}, {i:5, q:'Min9'}, {i:10, q:'Maj9'}, {i:3, q:'Maj9'}], type: 'Minor' },
+                'neo_minor': { label: 'Neo-Soul Minor', chords: [{i:0, q:'Min9'}, {i:8, q:'Maj9'}, {i:5, q:'Min11'}, {i:7, q:'Dom7'}], type: 'Minor' }
             },
             'Jazz & Blues': {
                 'jazz_251': { label: 'Jazz 2-5-1', chords: [{i:2, q:'Min7'}, {i:7, q:'Dom7'}, {i:0, q:'Maj7'}], type: 'Major' },
                 'jazz_minor': { label: 'Minor 2-5-1', chords: [{i:2, q:'HalfDim7'}, {i:7, q:'Dom7'}, {i:0, q:'Min9'}, {i:0, q:'Min9'}], type: 'Minor' },
-                'blues_turnaround': { label: 'Blues Turnaround', chords: [{i:0, q:'Dom7'}, {i:5, q:'Dom7'}, {i:0, q:'Dom7'}, {i:7, q:'Dom7'}], type: 'Major' }
+                'jazz_turnaround': { label: 'Major Turnaround', chords: [{i:0, q:'Maj7'}, {i:9, q:'Min7'}, {i:2, q:'Min7'}, {i:7, q:'Dom7'}], type: 'Major' },
+                'chromatic_walk': { label: 'Chromatic Walk', chords: [{i:0, q:'Maj7'}, {i:1, q:'Dim7'}, {i:2, q:'Min7'}, {i:7, q:'Dom7'}], type: 'Major' },
+                'blues_turnaround': { label: 'Blues Turnaround', chords: [{i:0, q:'Dom7'}, {i:5, q:'Dom7'}, {i:0, q:'Dom7'}, {i:7, q:'Dom7'}], type: 'Major' },
+                'andalusian': { label: 'Andalusian Cadence', chords: [{i:0, q:'Min7'}, {i:10, q:'Dom7'}, {i:8, q:'Maj7'}, {i:7, q:'Dom7'}], type: 'Minor' }
             },
             'Cinematic & Orchestral': {
                 'cinematic_epic': { label: 'Epic Journey', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:3, q:'Maj'}, {i:10, q:'Maj'}], type: 'Minor' },
-                'cinematic_floating': { label: 'Floating Space', chords: [{i:0, q:'Sus2'}, {i:5, q:'Add9'}, {i:9, q:'Min9'}, {i:7, q:'Sus4'}], type: 'Major' }
+                'cinematic_floating': { label: 'Floating Space', chords: [{i:0, q:'Sus2'}, {i:5, q:'Add9'}, {i:9, q:'Min9'}, {i:7, q:'Sus4'}], type: 'Major' },
+                'tragic_hero': { label: 'Tragic Hero', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:5, q:'Min'}, {i:7, q:'Maj'}], type: 'Minor' },
+                'tense_build': { label: 'Tense Build', chords: [{i:0, q:'Min'}, {i:11, q:'Dim7'}, {i:8, q:'Maj7'}, {i:7, q:'Dom7'}], type: 'Minor' }
             },
             'Rock & Alternative': {
                 'rock_classic': { label: 'Classic Rock', chords: [{i:0, q:'Maj'}, {i:10, q:'Maj'}, {i:5, q:'Maj'}, {i:0, q:'Maj'}], type: 'Major' },
                 'rock_grunge': { label: '90s Grunge', chords: [{i:0, q:'Min'}, {i:3, q:'Maj'}, {i:8, q:'Maj'}, {i:5, q:'Maj'}], type: 'Minor' },
-                'rock_alt': { label: 'Alt Rock Anthem', chords: [{i:0, q:'Maj'}, {i:4, q:'Min'}, {i:9, q:'Min'}, {i:5, q:'Maj'}], type: 'Major' }
+                'rock_alt': { label: 'Alt Rock Anthem', chords: [{i:0, q:'Maj'}, {i:4, q:'Min'}, {i:9, q:'Min'}, {i:5, q:'Maj'}], type: 'Major' },
+                'metal_anthem': { label: 'Metal Anthem', chords: [{i:0, q:'Min'}, {i:8, q:'Maj'}, {i:10, q:'Maj'}, {i:0, q:'Min'}], type: 'Minor' }
             }
         };
 
@@ -790,6 +828,7 @@
             const isArp = document.getElementById('toggle-arp').checked;
             const arpPattern = document.getElementById('arp-pattern').value;
             const lhPattern = document.getElementById('lh-pattern').value;
+            const lhOctave = parseInt(document.getElementById('lh-octave').value) || 0;
 
             let timeOffset = 0; 
             transportEventId = new Tone.Part((time, value) => {
@@ -799,7 +838,12 @@
                     if (act) act.classList.add('playing');
                 }, time);
 
-                const bassO1 = getMidiNote(value.chord.root, "1"); const bassO2 = getMidiNote(value.chord.root, "2");
+                // Apply global transposition offset
+                const bO1 = 1 + (value.lhOctave || 0);
+                const bO2 = 2 + (value.lhOctave || 0);
+                const bassO1 = getMidiNote(value.chord.root, bO1.toString()); 
+                const bassO2 = getMidiNote(value.chord.root, bO2.toString());
+                
                 const playBassNote = (midi, noteTime, duration, vel) => {
                     synthBass.triggerAttackRelease(Tone.Frequency(midi, "midi"), duration, noteTime, vel);
                     Tone.Draw.schedule(() => { highlightKey(midi, true, true); setTimeout(() => highlightKey(midi, false), Tone.Time(duration).toMilliseconds() - 20); }, noteTime);
@@ -846,7 +890,7 @@
             }, []).start(0);
 
             progression.forEach((chordData, i) => { 
-                transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern }); 
+                transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern, lhOctave: lhOctave }); 
                 timeOffset += Tone.Time(chordData.duration).toSeconds(); 
             });
             Tone.Transport.loopEnd = timeOffset; Tone.Transport.loop = true; Tone.Transport.start(); isPlaying = true;
