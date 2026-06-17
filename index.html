@@ -3,171 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Producer's Harmony Sandbox V2.8</title>
+    <title>Producer's Harmony Sandbox V2.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
+        :root {
+            --panel-bg: rgba(20, 24, 32, 0.75);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --neon-blue: #3B82F6;
+            --neon-blue-glow: rgba(59, 130, 246, 0.6);
+        }
+
         body {
-            background-color: #0f1115;
+            background-color: #0b0d10;
+            background-image: radial-gradient(circle at 50% 0%, #1a1f2e 0%, #0b0d10 70%);
             color: #e0e0e0;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
         
+        /* Premium Hardware Panels */
         .glass-panel {
-            background: rgba(30, 35, 45, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
+        /* Keyboard Optimisation */
         .piano-container {
             position: relative;
             height: 180px;
             white-space: nowrap;
             overflow-x: auto;
             overflow-y: hidden;
-            padding-bottom: 12px;
+            padding-bottom: 16px;
             user-select: none;
             -webkit-overflow-scrolling: touch;
             transform: translateZ(0); 
+            mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
         }
 
-        .piano-container::-webkit-scrollbar { height: 32px; }
-        .piano-container::-webkit-scrollbar-track { background: #111827; border-radius: 16px; border: 1px solid #374151; margin: 0 10px; }
-        .piano-container::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 16px; border: 6px solid #111827; }
-        .piano-container::-webkit-scrollbar-thumb:active { background: #60A5FA; }
+        .piano-container::-webkit-scrollbar { height: 28px; }
+        .piano-container::-webkit-scrollbar-track { background: #111827; border-radius: 14px; border: 1px solid #374151; margin: 0 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .piano-container::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #4B5563, #374151); border-radius: 14px; border: 4px solid #111827; }
+        .piano-container::-webkit-scrollbar-thumb:active { background: var(--neon-blue); }
 
         .key {
             display: inline-block;
             position: absolute;
             top: 0;
-            border-radius: 0 0 6px 6px;
+            border-radius: 0 0 8px 8px;
             cursor: pointer;
-            transition: background-color 0.1s, transform 0.05s, opacity 0.3s;
+            transition: transform 0.05s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transform-origin: top;
         }
 
-        .key-white { background-color: #fdfdfd; border: 1px solid #ccc; height: 140px; width: 40px; z-index: 1; }
-        .key-white.active, .key-white:active { background-color: #93C5FD; transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 15px rgba(147, 197, 253, 0.8); border-color: #60A5FA; }
-        .key-black { background-color: #1a1a1a; border: 1px solid #000; height: 90px; width: 24px; z-index: 2; box-shadow: inset -2px -2px 4px rgba(255,255,255,0.1), 0 4px 6px rgba(0,0,0,0.5); }
-        .key-black.active, .key-black:active { background-color: #3B82F6; transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 15px rgba(59, 130, 246, 0.8); border-color: #2563EB; }
+        .key-white { 
+            background: linear-gradient(to bottom, #ffffff 0%, #e2e8f0 100%);
+            border: 1px solid #94a3b8; 
+            border-top: none;
+            height: 140px; 
+            width: 44px; 
+            z-index: 1; 
+        }
+        .key-white.active, .key-white:active { 
+            background: #93C5FD; 
+            transform: rotateX(2deg) translateY(2px); 
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.2), 0 0 15px var(--neon-blue-glow); 
+            border-color: #60A5FA; 
+        }
+        
+        .key-black { 
+            background: linear-gradient(to bottom, #2d3748 0%, #0f172a 100%);
+            border: 1px solid #000; 
+            border-top: none;
+            height: 90px; 
+            width: 28px; 
+            z-index: 2; 
+            box-shadow: inset -2px -2px 4px rgba(255,255,255,0.1), 0 6px 10px rgba(0,0,0,0.5); 
+        }
+        .key-black.active, .key-black:active { 
+            background: #3B82F6; 
+            transform: rotateX(2deg) translateY(2px); 
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 0 0 15px var(--neon-blue-glow); 
+            border-color: #2563EB; 
+        }
 
-        .key-white.active-bass { background-color: #F472B6; transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 15px rgba(244, 114, 182, 0.8); border-color: #DB2777; }
-        .key-black.active-bass { background-color: #DB2777; transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 15px rgba(219, 39, 119, 0.8); border-color: #BE185D; }
+        .key-white.active-bass { background: #F472B6; transform: rotateX(2deg) translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 15px rgba(244, 114, 182, 0.6); border-color: #DB2777; }
+        .key-black.active-bass { background: #DB2777; transform: rotateX(2deg) translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 15px rgba(219, 39, 119, 0.6); border-color: #BE185D; }
 
-        .key.key-dimmed { opacity: 0.15; filter: grayscale(100%); pointer-events: auto; }
+        .key.key-dimmed { opacity: 0.25; filter: saturate(0%); pointer-events: auto; }
 
-        .timeline-chord { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .timeline-chord.playing { transform: scale(1.05) translateY(-2px); border-color: #60A5FA; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+        /* Timeline Ergonomics */
+        .timeline-chord { 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, #1f2937, #111827);
+        }
+        .timeline-chord.playing { 
+            transform: scale(1.02) translateY(-4px); 
+            border-color: #60A5FA; 
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.25), inset 0 0 0 1px rgba(96, 165, 250, 0.5); 
+        }
         
         .timeline-chord select {
-            background-color: #374151; color: #D1D5DB; border: 1px solid #4B5563;
-            border-radius: 4px; font-size: 0.6rem; padding: 2px 1px;
-            cursor: pointer; outline: none; width: 100%;
-            -webkit-appearance: none; appearance: none; text-align: center;
+            background-color: rgba(17, 24, 39, 0.8); 
+            color: #E5E7EB; 
+            border: 1px solid #4B5563;
+            border-radius: 6px; 
+            font-size: 0.7rem; 
+            padding: 4px 2px;
+            cursor: pointer; 
+            outline: none; 
+            width: 100%;
+            -webkit-appearance: none; 
+            appearance: none; 
+            text-align: center;
+            transition: border-color 0.2s;
         }
-        .timeline-chord select:focus { border-color: #60A5FA; }
+        .timeline-chord select:focus, .timeline-chord select:active { border-color: #60A5FA; background-color: #1F2937; }
+
+        /* Custom Range Sliders (Hardware Emulation) */
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { 
+            width: 100%; height: 6px; cursor: pointer; 
+            background: #1f2937; border-radius: 3px; 
+            border: 1px solid #374151;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 20px; width: 20px;
+            border-radius: 50%; 
+            background: radial-gradient(circle at 30% 30%, #60A5FA, #2563EB); 
+            cursor: pointer;
+            margin-top: -8px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+            border: 1px solid #1e3a8a;
+        }
+
+        /* Oscilloscope Graticule */
+        .oscilloscope-bg {
+            background-color: #050505;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 15px 15px;
+            background-position: center center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
 
         #start-overlay, #help-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10, 12, 16, 0.95); z-index: 100;
+            background: rgba(10, 12, 16, 0.85); z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
         #help-overlay { display: none; padding: 20px; overflow-y: auto; justify-content: flex-start; }
-        
-        /* Modal Content Scroll Fix */
         .help-content { max-height: 90vh; overflow-y: auto; width: 100%; max-width: 800px; }
-        .help-content::-webkit-scrollbar { width: 8px; }
-        .help-content::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
+        
+        /* Interactive Buttons */
+        .btn-interactive { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
+        .btn-interactive:active { transform: scale(0.96); }
+        .btn-interactive:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
 
-        input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px;
-            border-radius: 50%; background: #3b82f6; cursor: pointer;
-            margin-top: -6px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #374151; border-radius: 2px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
+    <!-- Start Overlay -->
     <div id="start-overlay" class="px-6 text-center">
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500">Harmony Sandbox</h1>
-        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Dual-Bus Architecture V2.8</p>
-        <p class="text-gray-300 mb-8 max-w-md mx-auto text-sm">Initialize the dual synthesis engines, configure DSP effects, and enable hardware support.</p>
-        <button id="btn-start" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-lg shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all transform active:scale-95">
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 tracking-tight">Harmony Sandbox</h1>
+        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.9</p>
+        <p class="text-gray-300 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">Initialize the dual synthesis engines, configure spatial effects, and enable hardware acceleration.</p>
+        <button id="btn-start" class="btn-interactive px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-lg shadow-[0_0_30px_rgba(37,99,235,0.3)] border border-blue-400/30">
             Initialize Studio
         </button>
     </div>
 
+    <!-- Help Overlay -->
     <div id="help-overlay">
         <div class="help-content glass-panel p-6 md:p-10 relative">
             <button onclick="document.getElementById('help-overlay').style.display='none'" class="absolute top-4 right-4 bg-gray-800 hover:bg-rose-600 text-white w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
             <h2 class="text-3xl font-extrabold mb-6 text-blue-400 border-b border-gray-700 pb-4">Sandbox Manual & Guide</h2>
             
-            <div class="space-y-6 text-sm text-gray-300">
+            <div class="space-y-6 text-sm text-gray-300 leading-relaxed">
                 <section>
                     <h3 class="text-xl font-bold text-white mb-2">1. Theory Palette (Audition & Inject)</h3>
-                    <p class="mb-2">The palette automatically generates valid diatonic chords based on your <strong>Global Key & Scale</strong> settings at the top.</p>
+                    <p class="mb-2">The palette automatically generates valid diatonic chords based on your <strong>Global Key & Scale</strong> settings.</p>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>Audition:</strong> Click the main body of any chord button to hear how it sounds without adding it to your song.</li>
-                        <li><strong>Add to Timeline:</strong> Click the green <code>+ ADD</code> bar at the bottom of a chord button to push it into your arrangement timeline.</li>
+                        <li><strong>Audition:</strong> Tap the main body of any chord block to monitor its voicing without timeline injection.</li>
+                        <li><strong>Add to Timeline:</strong> Tap the green <code>+ ADD</code> bar to append the structure to your sequencer.</li>
                     </ul>
                 </section>
                 
                 <section>
                     <h3 class="text-xl font-bold text-white mb-2">2. Arrangement Timeline (The Sequencer)</h3>
-                    <p class="mb-2">This is where you build your progression. Every block represents a chord and has 4 adjustable parameters:</p>
+                    <p class="mb-2">Every instantiated block features 4 programmable parameters:</p>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>OCT (Octave):</strong> Shifts the entire chord up or down the keyboard.</li>
-                        <li><strong>TYPE (Quality):</strong> Changes the emotional feel (e.g., swapping a Major chord for a moody Minor 9th).</li>
-                        <li><strong>INV (Inversion):</strong> Flips the lowest note of the chord up an octave. Use this to flatten out wild jumps between chords for smoother <em>Voice Leading</em>.</li>
-                        <li><strong>DUR (Duration):</strong> Controls timing. <code>1m</code> = Full Measure (4 beats). <code>2n</code> = Half Note (2 beats). <code>4n</code> = Quarter Note (1 beat).</li>
+                        <li><strong>OCT (Octave):</strong> Transposes the fundamental frequency.</li>
+                        <li><strong>TYPE (Quality):</strong> Alters harmonic intervals (e.g., transitioning Major to Minor 9th).</li>
+                        <li><strong>INV (Inversion):</strong> Re-orders the stack, pivoting the lowest note an octave higher for superior <em>Voice Leading</em>.</li>
+                        <li><strong>DUR (Duration):</strong> Dictates quantization. <code>1m</code> = Full Measure. <code>2n</code> = Half Note. <code>4n</code> = Quarter Note.</li>
                     </ul>
                 </section>
 
                 <section>
                     <h3 class="text-xl font-bold text-white mb-2">3. Left Hand & Arp Generators</h3>
-                    <p class="mb-2">Located above the timeline, these tools automatically generate complex MIDI patterns based on your chord blocks.</p>
+                    <p class="mb-2">These modules systematically calculate complex MIDI data driven by your chord definitions.</p>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>Left Hand:</strong> Generates a bassline. "Root Block" plays long sustained notes. "Walking" algorithmically figures out diatonic passing notes based on the current scale.</li>
-                        <li><strong>Arp Mode:</strong> Breaks your block chords into fast, rhythmic 16th-note synthesizer patterns.</li>
+                        <li><strong>Left Hand:</strong> "Root Block" executes sustained fundamentals. "Walking" algorithmically computes diatonic passing intervals.</li>
+                        <li><strong>Arp Mode:</strong> Deconstructs block chords into quantized 16th-note rhythmic sequences.</li>
                     </ul>
                 </section>
 
                 <section>
                     <h3 class="text-xl font-bold text-white mb-2">4. Dual-Bus Mixer & DSP</h3>
-                    <p class="mb-2">The audio engine splits your Left Hand (Bass) and Right Hand (Chords) into two separate signal paths.</p>
+                    <p class="mb-2">The architecture implements discrete signal paths for low and high frequencies.</p>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li>The <strong>Bass</strong> is kept mono and clean to prevent low-end phasing and crackling.</li>
-                        <li>The <strong>Chords</strong> are routed through the Master FX chain (Ping-Pong Delay, Hall Reverb, LPF Cutoff) for wide, lush spatial width.</li>
-                        <li>A master <strong>Limiter</strong> acts as a brick wall at the end of the chain to guarantee zero digital distortion at high volumes.</li>
+                        <li><strong>Bass Bus:</strong> Maintained strictly mono to eliminate phase cancellation.</li>
+                        <li><strong>Chord Bus:</strong> Processed via the Master FX chain (Ping-Pong Delay, Hall Reverb, LPF Cutoff) for maximum stereo width.</li>
+                        <li><strong>Master Limit:</strong> A brick-wall limiter acts as the final node, guaranteeing zero digital clipping (> 0dBFS).</li>
                     </ul>
                 </section>
             </div>
             
-            <button onclick="document.getElementById('help-overlay').style.display='none'" class="w-full mt-8 bg-blue-600 hover:bg-blue-500 py-3 rounded-lg text-white font-bold transition">Close Manual</button>
+            <button onclick="document.getElementById('help-overlay').style.display='none'" class="btn-interactive w-full mt-8 bg-blue-600 hover:bg-blue-500 py-3 rounded-lg text-white font-bold">Close Manual</button>
         </div>
     </div>
 
-    <header class="p-4 border-b border-gray-800 bg-gray-900/90 flex flex-col md:flex-row flex-wrap justify-between items-center gap-4 sticky top-0 z-50">
+    <!-- Header Navigation -->
+    <header class="p-4 lg:px-8 border-b border-gray-800 bg-[#0f1115]/80 backdrop-blur-md flex flex-col md:flex-row flex-wrap justify-between items-center gap-4 sticky top-0 z-50 shadow-sm">
         <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-            <h1 class="text-xl font-bold text-white tracking-tight hidden md:block">Harmony Sandbox</h1>
+            <h1 class="text-xl font-bold text-white tracking-tight hidden lg:block">Harmony Sandbox</h1>
             
-            <div class="flex items-center space-x-2 bg-gray-800/50 p-1.5 rounded-lg border border-gray-700 w-full md:w-auto justify-center">
-                <label class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mr-1">Global Key:</label>
-                <select id="global-key" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
+            <div class="flex items-center space-x-2 bg-gray-900/60 p-2 rounded-xl border border-gray-700/50 w-full md:w-auto justify-center shadow-inner">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-1">Global Key:</label>
+                <select id="global-key" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer transition-colors hover:bg-gray-700">
                     <option value="C">C</option><option value="C#">C# / Db</option><option value="D">D</option>
                     <option value="D#">D# / Eb</option><option value="E">E</option><option value="F">F</option>
                     <option value="F#">F# / Gb</option><option value="G">G</option><option value="G#">G# / Ab</option>
                     <option value="A">A</option><option value="A#">A# / Bb</option><option value="B">B</option>
                 </select>
-                <select id="global-scale" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
+                <select id="global-scale" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer transition-colors hover:bg-gray-700">
                     <option value="Major">Major</option>
                     <option value="Minor">Minor</option>
                 </select>
@@ -175,141 +260,142 @@
         </div>
 
         <div class="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-end">
-            <div id="midi-status" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700 shadow-inner">
-                <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.8)]" id="midi-indicator"></div>
-                <span class="text-xs font-medium text-gray-300" id="midi-text">MIDI Offline</span>
+            <div id="midi-status" class="flex items-center space-x-2 px-4 py-2 rounded-full bg-gray-900/60 border border-gray-700/50 shadow-inner">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] transition-colors duration-500" id="midi-indicator"></div>
+                <span class="text-xs font-semibold text-gray-300 tracking-wide" id="midi-text">MIDI Offline</span>
             </div>
-            <button onclick="document.getElementById('help-overlay').style.display='flex'" class="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-full text-xs font-bold text-white transition shadow-lg shadow-indigo-900/40">
-                <span>[?] Manual</span>
+            <button onclick="document.getElementById('help-overlay').style.display='flex'" class="btn-interactive flex items-center justify-center bg-gray-800 hover:bg-gray-700 border border-gray-600 w-9 h-9 rounded-full text-white transition shadow-md">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </button>
         </div>
     </header>
 
-    <main class="flex-grow p-3 md:p-6 flex flex-col space-y-6 max-w-[1600px] mx-auto w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <main class="flex-grow p-4 lg:p-8 flex flex-col space-y-6 max-w-[1800px] mx-auto w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
             
-            <div class="glass-panel p-4 md:p-5 lg:col-span-1 flex flex-col space-y-6">
+            <!-- Dual Bus Mixer & Palette -->
+            <div class="glass-panel p-5 lg:p-6 lg:col-span-1 flex flex-col space-y-8">
                 <div>
-                    <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-2 mb-3">Dual-Bus Mixer</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-[10px] font-mono text-gray-400 mb-2 uppercase font-bold"><span>Right Hand (Chords/Arp)</span></div>
-                            <input type="range" id="vol-chords" min="-40" max="0" value="-5" class="w-full">
+                    <h2 class="text-sm font-extrabold text-white uppercase tracking-widest border-b border-gray-700/50 pb-3 mb-5">Dual-Bus Mixer</h2>
+                    <div class="space-y-6">
+                        <div class="group">
+                            <div class="flex justify-between text-[11px] font-mono text-blue-400 mb-3 uppercase font-bold tracking-wide"><span>Right Hand (Chords)</span></div>
+                            <input type="range" id="vol-chords" min="-40" max="0" value="-5">
                         </div>
-                        <div>
-                            <div class="flex justify-between text-[10px] font-mono text-gray-400 mb-2 uppercase font-bold"><span>Left Hand (Bass)</span></div>
-                            <!-- Lowered max volume to prevent clipping -->
-                            <input type="range" id="vol-bass" min="-40" max="-5" value="-10" class="w-full">
+                        <div class="group">
+                            <div class="flex justify-between text-[11px] font-mono text-pink-400 mb-3 uppercase font-bold tracking-wide"><span>Left Hand (Bass)</span></div>
+                            <input type="range" id="vol-bass" min="-40" max="-5" value="-10">
                         </div>
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-gray-700">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Theory Palette</h3>
-                        <span id="current-key-label" class="text-[10px] bg-gray-800 px-2 py-1 rounded text-blue-400 font-mono border border-gray-600">C Major</span>
+                <div class="pt-6 border-t border-gray-700/50">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-extrabold text-white uppercase tracking-widest">Theory Palette</h3>
+                        <span id="current-key-label" class="text-[10px] bg-blue-900/30 px-2 py-1 rounded text-blue-400 font-mono border border-blue-800/50 shadow-inner">C Major</span>
                     </div>
-                    <p class="text-[10px] text-gray-500 mb-2 leading-tight">Click top to audition. Click "+ ADD" to append to timeline.</p>
                     <div id="diatonic-palette" class="grid grid-cols-2 gap-3"></div>
                 </div>
             </div>
 
-            <div class="glass-panel p-4 md:p-5 lg:col-span-2 flex flex-col space-y-4">
-                <div class="flex flex-col md:flex-row justify-between md:items-end border-b border-gray-700 pb-3 gap-4">
-                    <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Arrangement Timeline</h2>
+            <!-- Arrangement Timeline -->
+            <div class="glass-panel p-5 lg:p-6 lg:col-span-2 flex flex-col space-y-5">
+                <div class="flex flex-col xl:flex-row justify-between xl:items-end border-b border-gray-700/50 pb-4 gap-5">
+                    <h2 class="text-sm font-extrabold text-white uppercase tracking-widest">Arrangement Sequencer</h2>
                     
-                    <div class="flex flex-wrap md:flex-nowrap gap-3 items-center bg-gray-900/50 p-2 rounded border border-gray-800">
-                        <div class="flex flex-col space-y-1">
-                            <span class="text-[10px] text-gray-500 uppercase font-bold">Left Hand</span>
-                            <select id="lh-pattern" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-blue-500 cursor-pointer">
-                                <option value="none">None</option><option value="root">Root Block</option>
-                                <option value="root5">Root-5th</option><option value="bounce">Oct Bounce</option>
+                    <div class="flex flex-wrap md:flex-nowrap gap-4 items-center bg-gray-900/40 p-3 rounded-xl border border-gray-800/80 shadow-inner">
+                        <div class="flex flex-col space-y-1.5 w-full md:w-auto">
+                            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Left Hand Output</span>
+                            <select id="lh-pattern" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-blue-500 cursor-pointer transition-colors hover:bg-gray-700">
+                                <option value="none">Disabled</option><option value="root">Root Sustained</option>
+                                <option value="root5">Root-5th Alt</option><option value="bounce">Octave Bounce</option>
                                 <option value="walking">Walking Bass</option>
                             </select>
                         </div>
                         
-                        <div class="hidden md:block h-8 w-px bg-gray-700"></div>
+                        <div class="hidden md:block h-10 w-px bg-gray-700/50"></div>
                         
-                        <div class="flex flex-col space-y-1">
-                            <span class="text-[10px] text-gray-500 uppercase font-bold">Arp Mode</span>
-                            <div class="flex items-center space-x-2 bg-gray-800 border border-gray-600 rounded px-2 py-1">
+                        <div class="flex flex-col space-y-1.5">
+                            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Arpeggiator</span>
+                            <div class="flex items-center space-x-3 bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5">
                                 <label for="toggle-arp" class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="toggle-arp" class="sr-only peer">
-                                    <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <div class="w-8 h-4 bg-gray-900 shadow-inner rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-blue-600"></div>
                                 </label>
-                                <select id="arp-pattern" class="bg-transparent text-white text-[10px] focus:outline-none cursor-pointer w-14 ml-1">
-                                    <option value="up">Up</option><option value="down">Down</option>
-                                    <option value="updown">U/D</option><option value="random">Rnd</option>
+                                <select id="arp-pattern" class="bg-transparent text-white text-[11px] font-mono focus:outline-none cursor-pointer w-16">
+                                    <option value="up">UP</option><option value="down">DOWN</option>
+                                    <option value="updown">U/D</option><option value="random">RND</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="flex flex-col space-y-1">
-                            <span class="text-[10px] text-gray-500 uppercase font-bold">Tempo</span>
-                            <input type="number" id="bpm-input" value="110" min="60" max="200" class="w-16 bg-gray-800 border border-gray-600 rounded px-1 py-1 text-white text-center text-xs focus:outline-none">
+                        <div class="flex flex-col space-y-1.5">
+                            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Clock (BPM)</span>
+                            <input type="number" id="bpm-input" value="110" min="60" max="200" class="w-16 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1.5 text-white text-center text-xs font-mono focus:outline-none transition-colors hover:bg-gray-700">
                         </div>
                     </div>
                 </div>
 
-                <div id="timeline" class="min-h-[160px] bg-gray-900/80 rounded-xl p-4 flex flex-wrap gap-3 border border-dashed border-gray-600 items-start content-start relative shadow-inner">
+                <div id="timeline" class="min-h-[180px] bg-[#0b0d10]/50 rounded-xl p-5 flex flex-wrap gap-4 border border-dashed border-gray-600/50 items-start content-start relative shadow-inner">
                     <div id="timeline-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-500 text-sm italic pointer-events-none text-center px-4">
-                        Timeline is empty. Inject chords or load a preset below.
+                        Timeline empty. Inject structural definitions from the Palette or Library.
                     </div>
                 </div>
 
-                <div class="flex flex-col space-y-4">
-                    <div class="flex space-x-2">
-                        <button id="btn-play" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded font-bold shadow-lg shadow-emerald-900/30 transition flex justify-center items-center space-x-2 active:scale-95">
+                <div class="flex flex-col space-y-5">
+                    <div class="flex space-x-3">
+                        <button id="btn-play" class="btn-interactive flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold shadow-[0_4px_15px_rgba(5,150,105,0.3)] flex justify-center items-center space-x-2">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Play Sequence</span>
                         </button>
-                        <button id="btn-stop" class="bg-rose-600 hover:bg-rose-500 text-white px-6 py-3 rounded font-bold shadow-lg shadow-rose-900/30 transition flex items-center active:scale-95">
+                        <button id="btn-stop" class="btn-interactive bg-rose-600 hover:bg-rose-500 text-white px-8 py-4 rounded-xl font-bold shadow-[0_4px_15px_rgba(225,29,72,0.3)] flex items-center">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
                         </button>
-                        <button id="btn-clear" class="bg-gray-700 hover:bg-gray-600 text-white px-5 py-3 rounded transition text-sm font-medium border border-gray-600 active:scale-95">Clear</button>
+                        <button id="btn-clear" class="btn-interactive bg-gray-700 hover:bg-gray-600 text-white px-6 py-4 rounded-xl font-medium border border-gray-600 shadow-md">Clear</button>
                     </div>
                     
-                    <div class="pt-3 border-t border-gray-800">
-                        <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-semibold">Master Progression Library</span>
-                        <div class="flex space-x-2 flex-col md:flex-row gap-2 md:gap-0">
-                            <select id="preset-select" class="flex-grow bg-gray-800 border border-gray-700 rounded p-3 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer shadow-inner w-full md:w-auto"></select>
-                            <button id="btn-load-preset" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded font-bold shadow-lg shadow-blue-900/30 transition text-sm active:scale-95 w-full md:w-auto">Load Progression</button>
+                    <div class="pt-4 border-t border-gray-700/50">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-3 font-bold">Master Progression Library</span>
+                        <div class="flex space-x-3 flex-col sm:flex-row gap-3 sm:gap-0">
+                            <select id="preset-select" class="flex-grow bg-gray-900/60 border border-gray-700 rounded-xl p-3.5 text-white text-sm focus:outline-none focus:border-blue-500 cursor-pointer shadow-inner w-full sm:w-auto transition-colors hover:bg-gray-800"></select>
+                            <button id="btn-load-preset" class="btn-interactive bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3.5 rounded-xl font-bold shadow-[0_4px_15px_rgba(79,70,229,0.3)] text-sm w-full sm:w-auto">Load Matrix</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="glass-panel p-4 md:p-5 lg:col-span-1 flex flex-col space-y-5">
-                <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider border-b border-gray-700 pb-2">Master FX (Chords)</h2>
+            <!-- Master FX & Oscilloscope -->
+            <div class="glass-panel p-5 lg:p-6 lg:col-span-1 flex flex-col space-y-6">
+                <h2 class="text-sm font-extrabold text-white uppercase tracking-widest border-b border-gray-700/50 pb-3">DSP Master FX</h2>
                 
-                <div class="w-full h-24 md:h-28 bg-[#050505] rounded-lg border border-gray-800 overflow-hidden relative shadow-inner">
-                    <div class="absolute top-2 left-2 text-[9px] text-gray-600 font-mono z-10">OSCILLOSCOPE</div>
-                    <canvas id="oscilloscope" class="w-full h-full block"></canvas>
+                <div class="oscilloscope-bg w-full h-28 md:h-32 rounded-xl border border-gray-700 overflow-hidden relative">
+                    <div class="absolute top-2 left-2 px-1.5 py-0.5 bg-black/50 rounded text-[9px] text-gray-400 font-mono z-10 border border-gray-800 backdrop-blur-sm">OSC / L CH</div>
+                    <canvas id="oscilloscope" class="w-full h-full block absolute inset-0 z-0"></canvas>
                 </div>
 
-                <div class="space-y-5 pt-2">
-                    <div>
-                        <div class="flex justify-between text-xs font-mono text-blue-400 mb-2"><span>LPF Cutoff</span> <span id="val-cutoff">20.0 kHz</span></div>
-                        <input type="range" id="fx-cutoff" min="200" max="20000" value="20000" class="w-full py-2">
+                <div class="space-y-6 pt-2">
+                    <div class="group">
+                        <div class="flex justify-between text-xs font-mono text-indigo-400 mb-3 font-semibold tracking-wide"><span>LPF Cutoff</span> <span id="val-cutoff">20.0 kHz</span></div>
+                        <input type="range" id="fx-cutoff" min="200" max="20000" value="20000">
                     </div>
-                    <div>
-                        <div class="flex justify-between text-xs font-mono text-purple-400 mb-2"><span>Ping Delay</span> <span id="val-delay">0%</span></div>
-                        <input type="range" id="fx-delay" min="0" max="100" value="0" class="w-full py-2">
+                    <div class="group">
+                        <div class="flex justify-between text-xs font-mono text-purple-400 mb-3 font-semibold tracking-wide"><span>Ping Delay</span> <span id="val-delay">0%</span></div>
+                        <input type="range" id="fx-delay" min="0" max="100" value="0">
                     </div>
-                    <div>
-                        <div class="flex justify-between text-xs font-mono text-pink-400 mb-2"><span>Hall Reverb</span> <span id="val-reverb">30%</span></div>
-                        <input type="range" id="fx-reverb" min="0" max="100" value="30" class="w-full py-2">
+                    <div class="group">
+                        <div class="flex justify-between text-xs font-mono text-teal-400 mb-3 font-semibold tracking-wide"><span>Hall Reverb</span> <span id="val-reverb">30%</span></div>
+                        <input type="range" id="fx-reverb" min="0" max="100" value="30">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="glass-panel p-4 md:p-5 mt-auto relative">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Virtual Keyboard</h3>
-                <span class="text-[10px] md:text-xs text-gray-500 font-mono">Diatonic Masking Active</span>
+        <div class="glass-panel p-5 lg:p-6 mt-auto relative">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-sm font-extrabold text-white uppercase tracking-widest">Virtual Keybed</h3>
+                <span class="text-[10px] md:text-xs px-2 py-1 bg-gray-800 rounded-md text-gray-400 font-mono border border-gray-700">Diatonic Masking Active</span>
             </div>
-            <div id="piano" class="piano-container"></div>
-            <div class="text-center text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-2 select-none md:hidden">⟷ Swipe bar to scroll ⟷</div>
+            <div id="piano" class="piano-container border-t border-l border-r border-gray-700 rounded-t-lg bg-[#0b0d10]"></div>
+            <div class="text-center text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-3 select-none md:hidden animate-pulse">⟷ Swipe bar to scroll ⟷</div>
         </div>
     </main>
 
@@ -369,7 +455,6 @@
             document.querySelectorAll('.key').forEach(k => validNotes.includes(parseInt(k.dataset.midi) % 12) ? k.classList.remove('key-dimmed') : k.classList.add('key-dimmed'));
         }
 
-        // --- STREAMING_CHUNK:Setting up Audio and Hardware Interfaces... ---
         function highlightKey(midi, isActive, isBass = false) {
             const keyEl = document.querySelector(`.key[data-midi="${midi}"]`);
             if (keyEl) {
@@ -411,7 +496,6 @@
                 envelope: { attack: 0.05, decay: 0.5, sustain: 0.4, release: 1.5 } 
             });
             
-            // Bass switched to SINE wave with longer attack to absolutely guarantee zero crackle
             synthBass = new Tone.PolySynth(Tone.Synth, { 
                 maxPolyphony: 4, 
                 oscillator: { type: "sine" }, 
@@ -429,8 +513,6 @@
             const chorus = new Tone.Chorus(4, 2.5, 0.5).start(); chorus.wet.value = 0.15;
             
             analyzer = new Tone.Analyser("waveform", 512);
-            
-            // Replaced basic compressor with heavy Master Limiter to prevent clipping
             masterLimiter = new Tone.Limiter(-2);
 
             synthChords.chain(tremolo, chorus, filter, delay, reverb, volChords, analyzer, masterLimiter, Tone.Destination);
@@ -446,21 +528,37 @@
         function drawVisualizer() {
             requestAnimationFrame(drawVisualizer);
             if (!isAudioInitialized || !analyzer) return;
-            const canvas = document.getElementById('oscilloscope'); const ctx = canvas.getContext('2d');
-            const width = canvas.clientWidth; const height = canvas.clientHeight;
-            if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+            const canvas = document.getElementById('oscilloscope'); 
+            const ctx = canvas.getContext('2d');
+            const width = canvas.clientWidth; 
+            const height = canvas.clientHeight;
+            
+            if (canvas.width !== width || canvas.height !== height) { 
+                canvas.width = width; 
+                canvas.height = height; 
+            }
+            
             const data = analyzer.getValue();
-            ctx.clearRect(0, 0, width, height); ctx.beginPath();
-            ctx.lineWidth = 2; ctx.strokeStyle = '#60A5FA'; ctx.shadowBlur = 10; ctx.shadowColor = '#3B82F6';
-            const sliceWidth = width / data.length; let x = 0;
+            ctx.clearRect(0, 0, width, height); 
+            
+            // Draw Waveform (Neon Cyberpunk style)
+            ctx.beginPath();
+            ctx.lineWidth = 2.5; 
+            ctx.strokeStyle = '#22d3ee'; // Cyan
+            ctx.shadowBlur = 12; 
+            ctx.shadowColor = '#06b6d4';
+            
+            const sliceWidth = width / data.length; 
+            let x = 0;
             for (let i = 0; i < data.length; i++) {
                 const y = (data[i] * (height / 2.5)) + (height / 2); 
-                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); x += sliceWidth;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); 
+                x += sliceWidth;
             }
-            ctx.stroke(); ctx.shadowBlur = 0;
+            ctx.stroke(); 
+            ctx.shadowBlur = 0;
         }
 
-        // --- STREAMING_CHUNK:Configuring Event Listeners and Timeline... ---
         function hotSwapSequence() {
             if (!isPlaying || !transportEventId) return;
             transportEventId.clear();
@@ -471,7 +569,7 @@
             let timeOffset = 0; 
             progression.forEach((chordData, i) => {
                 transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern });
-                timeOffset += Tone.Time(chordData.duration).toSeconds(); // Use specific duration
+                timeOffset += Tone.Time(chordData.duration).toSeconds();
             });
             Tone.Transport.loopEnd = timeOffset;
         }
@@ -497,16 +595,17 @@
 
         function buildPiano() {
             const container = document.getElementById('piano'); container.innerHTML = ''; 
-            const whiteKeyWidth = 44; let whiteKeyCount = 0;
+            const whiteKeyWidth = 46; // Slightly wider for better touch
+            let whiteKeyCount = 0;
             for (let midi = 24; midi <= 83; midi++) {
                 const noteName = NOTES[midi % 12]; const keyEl = document.createElement('div');
                 keyEl.dataset.midi = midi; keyEl.classList.add('key', noteName.includes('#') ? 'key-black' : 'key-white');
-                if (noteName.includes('#')) { keyEl.style.left = `${(whiteKeyCount * whiteKeyWidth) - 12}px`; } 
+                if (noteName.includes('#')) { keyEl.style.left = `${(whiteKeyCount * whiteKeyWidth) - 14}px`; } 
                 else {
                     keyEl.style.left = `${whiteKeyCount * whiteKeyWidth}px`; whiteKeyCount++;
                     if (noteName === 'C') {
                         const label = document.createElement('span'); label.innerText = `C${Math.floor(midi/12)-1}`;
-                        label.style.cssText = 'position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:10px; color:#888; font-weight:bold;';
+                        label.style.cssText = 'position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:11px; color:#64748B; font-weight:bold;';
                         keyEl.appendChild(label);
                     }
                 }
@@ -530,7 +629,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK:Rendering Timeline and Dynamic Library... ---
         function renderTimeline() {
             const timeline = document.getElementById('timeline');
             Array.from(timeline.children).forEach(c => { if (c.id !== 'timeline-placeholder') timeline.removeChild(c); });
@@ -538,32 +636,30 @@
             document.getElementById('timeline-placeholder').style.display = 'none';
 
             const qualityOpts = Object.keys(CHORD_INTERVALS); const octaveOpts = ['2', '3', '4', '5', '6']; const invOpts = ['0', '1', '2', '3', '4'];
-            const durOpts = ['1m', '2n', '4n']; // Whole, Half, Quarter note lengths
+            const durOpts = ['1m', '2n', '4n']; 
 
             progression.forEach((chordData, index) => {
                 const block = document.createElement('div');
-                // Expanded block width to accommodate 4 columns cleanly
-                block.className = 'timeline-chord bg-gray-800 border border-gray-600 rounded-lg p-2 pt-5 flex flex-col items-center cursor-pointer min-w-[150px] group relative shadow-md hover:bg-gray-700 w-full md:w-auto';
+                block.className = 'timeline-chord rounded-xl p-3 pt-6 flex flex-col items-center cursor-pointer min-w-[160px] group relative border border-gray-700 shadow-lg hover:border-gray-500 w-full md:w-auto';
                 block.dataset.index = index;
                 
                 const badge = document.createElement('div');
-                badge.className = 'absolute -top-3 -left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-900 shadow-md transform -rotate-2';
+                badge.className = 'absolute -top-3 -left-2 bg-indigo-600 text-white text-[11px] font-bold px-3 py-1 rounded-full border border-gray-900 shadow-md transform -rotate-2';
                 badge.innerText = getRomanNumeral(document.getElementById('global-key').value, document.getElementById('global-scale').value, chordData.root, chordData.quality);
 
                 const nameLabel = document.createElement('span');
-                nameLabel.className = 'font-bold text-blue-100 text-lg md:text-xl leading-tight block text-center w-full mb-1';
+                nameLabel.className = 'font-extrabold text-blue-100 text-xl leading-tight block text-center w-full mb-2 tracking-tight';
                 nameLabel.innerText = `${chordData.root}`;
 
                 const delBtn = document.createElement('button');
-                delBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-                delBtn.className = 'absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition shadow-md z-10';
+                delBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                delBtn.className = 'absolute -top-2 -right-2 bg-rose-600 hover:bg-rose-500 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shadow-md z-10 border border-rose-800';
                 delBtn.onclick = (e) => { e.stopPropagation(); progression.splice(index, 1); renderTimeline(); hotSwapSequence(); };
 
-                // Now 4 columns including DUR
-                const editorGrid = document.createElement('div'); editorGrid.className = 'grid grid-cols-4 gap-1 w-full mt-1';
+                const editorGrid = document.createElement('div'); editorGrid.className = 'grid grid-cols-4 gap-1.5 w-full mt-1';
                 const createSelectGroup = (opts, currentVal, onChange, labelText, isChordType = false) => {
                     const wrap = document.createElement('div'); wrap.className = 'flex flex-col items-center w-full';
-                    const lbl = document.createElement('span'); lbl.className = 'text-[7px] text-gray-500 font-bold mb-0.5'; lbl.innerText = labelText;
+                    const lbl = document.createElement('span'); lbl.className = 'text-[8px] text-gray-400 font-bold mb-1 tracking-wider'; lbl.innerText = labelText;
                     const sel = document.createElement('select'); sel.onclick = (e) => e.stopPropagation(); 
                     opts.forEach(optVal => {
                         const opt = document.createElement('option'); opt.value = optVal; 
@@ -653,13 +749,12 @@
             steps.forEach(step => {
                 const noteIndex = (baseMidi + step.i) % 12; const rootName = NOTES[noteIndex];
                 
-                // DECOUPLED AUDITION & INJECT
                 const btnContainer = document.createElement('div');
-                btnContainer.className = 'flex flex-col rounded overflow-hidden shadow-sm border border-gray-600 transition hover:border-blue-400';
+                btnContainer.className = 'flex flex-col rounded-xl overflow-hidden shadow-md border border-gray-700 transition hover:border-blue-400 group';
                 
                 const btnAudition = document.createElement('button');
-                btnAudition.className = 'bg-gray-700 hover:bg-gray-600 py-3 flex flex-col items-center justify-center active:bg-blue-600';
-                btnAudition.innerHTML = `<span class="text-sm font-bold text-white">${rootName} ${CHORD_NAMES[step.q]}</span><span class="text-[9px] text-gray-400 font-mono mt-0.5">${getRomanNumeral(keyStr,scale,rootName,step.q)}</span>`;
+                btnAudition.className = 'bg-gradient-to-b from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 py-4 flex flex-col items-center justify-center active:from-blue-600 active:to-blue-700 transition-colors';
+                btnAudition.innerHTML = `<span class="text-sm font-extrabold text-white tracking-wide">${rootName} ${CHORD_NAMES[step.q]}</span><span class="text-[10px] text-gray-400 font-mono mt-1">${getRomanNumeral(keyStr,scale,rootName,step.q)}</span>`;
                 btnAudition.onclick = () => {
                     const oct = 3 + ((baseMidi + step.i) >= 12 ? 1 : 0);
                     const mn = generateChordMidi(rootName, oct.toString(), step.q, "0");
@@ -667,7 +762,7 @@
                 };
 
                 const btnAdd = document.createElement('button');
-                btnAdd.className = 'bg-emerald-700 hover:bg-emerald-600 py-1 text-[10px] font-bold text-white uppercase tracking-wider active:bg-emerald-500';
+                btnAdd.className = 'bg-emerald-600/90 hover:bg-emerald-500 py-1.5 text-[10px] font-extrabold text-white uppercase tracking-widest active:bg-emerald-400 transition-colors border-t border-emerald-400/20';
                 btnAdd.innerText = '+ Add';
                 btnAdd.onclick = () => {
                     const oct = 3 + ((baseMidi + step.i) >= 12 ? 1 : 0);
@@ -701,7 +796,6 @@
             renderTimeline();
         });
 
-        // --- STREAMING_CHUNK:Finalizing Variable-Duration Sequencer... ---
         document.getElementById('btn-play').addEventListener('click', () => {
             if (!isAudioInitialized || progression.length === 0) return;
             Tone.Transport.stop(); Tone.Transport.cancel(0); Tone.Transport.position = 0;
@@ -729,7 +823,6 @@
                     Tone.Draw.schedule(() => { highlightKey(midi, true, true); setTimeout(() => highlightKey(midi, false), Tone.Time(duration).toMilliseconds() - 20); }, noteTime);
                 };
 
-                // Dynamic Duration Math
                 const durSeconds = Tone.Time(value.chord.duration).toSeconds();
                 const qT = Tone.Time("4n").toSeconds();
                 const eT = Tone.Time("8n").toSeconds();
