@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Producer's Harmony Sandbox V2.11</title>
+    <title>Producer's Harmony Sandbox V2.12</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
@@ -174,7 +174,7 @@
 
     <div id="start-overlay" class="px-6 text-center">
         <h1 class="text-4xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 tracking-tight">Harmony Sandbox</h1>
-        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.11</p>
+        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.12</p>
         <p class="text-gray-300 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">Initialize the dual synthesis engines, configure spatial effects, and enable hardware acceleration.</p>
         <button id="btn-start" class="btn-interactive px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-lg shadow-[0_0_30px_rgba(37,99,235,0.3)] border border-blue-400/30">
             Initialize Studio
@@ -265,11 +265,11 @@
                     <div class="space-y-6">
                         <div class="group">
                             <div class="flex justify-between text-[11px] font-mono text-blue-400 mb-3 uppercase font-bold tracking-wide"><span>Right Hand (Chords)</span></div>
-                            <input type="range" id="vol-chords" min="-40" max="0" value="-5">
+                            <input type="range" id="vol-chords" min="-40" max="0" value="-8">
                         </div>
                         <div class="group">
                             <div class="flex justify-between text-[11px] font-mono text-pink-400 mb-3 uppercase font-bold tracking-wide"><span>Left Hand (Bass)</span></div>
-                            <input type="range" id="vol-bass" min="-40" max="-5" value="-10">
+                            <input type="range" id="vol-bass" min="-40" max="-5" value="-12">
                         </div>
                     </div>
                 </div>
@@ -495,12 +495,11 @@
                 envelope: { attack: 0.05, decay: 0.5, sustain: 0.4, release: 1.5 } 
             });
             
-            synthBass = new Tone.PolySynth(Tone.AMSynth, { 
-                maxPolyphony: 4, 
-                harmonicity: 0.5,
+            // V2.12 Mobile Optimization: Reduced polyphony to 2, changed from AMSynth to standard Synth
+            synthBass = new Tone.PolySynth(Tone.Synth, { 
+                maxPolyphony: 2, 
                 oscillator: { type: "triangle" }, 
-                modulation: { type: "sine" },
-                envelope: { attack: 0.05, decay: 0.3, sustain: 0.6, release: 0.8 } 
+                envelope: { attack: 0.06, decay: 0.3, sustain: 0.6, release: 0.8 } 
             });
 
             const bassFilter = new Tone.Filter(600, "lowpass");
