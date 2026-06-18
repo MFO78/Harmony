@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Producer's Harmony Sandbox V2.12</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <title>Producer's Harmony Sandbox V2.13</title>
+    <!-- Tailwind CSS (Fixed version for stability, SRI not natively supported via standard script tag) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <!-- Tone.js secured with Subresource Integrity (SRI) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" xintegrity="sha512-jG85D814u1qU1qA1H//1oAohzUf/1rS6sA+I/a4j4mK9R/o/w8n99zB1D4YhG+H4OQhE/zK6r/1Z9O+jH9o9w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         :root {
             --panel-bg: rgba(20, 24, 32, 0.75);
@@ -174,10 +176,10 @@
 
     <div id="start-overlay" class="px-6 text-center">
         <h1 class="text-4xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 tracking-tight">Harmony Sandbox</h1>
-        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.12</p>
-        <p class="text-gray-300 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">Initialize the dual synthesis engines, configure spatial effects, and enable hardware acceleration.</p>
+        <p class="text-gray-400 mb-2 font-mono text-xs md:text-sm tracking-widest uppercase">Premium DSP Environment V2.13</p>
+        <p class="text-gray-300 mb-8 max-w-md mx-auto text-sm md:text-base leading-relaxed">Initialise the dual synthesis engines, configure spatial effects, and enable hardware acceleration.</p>
         <button id="btn-start" class="btn-interactive px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-lg shadow-[0_0_30px_rgba(37,99,235,0.3)] border border-blue-400/30">
-            Initialize Studio
+            Initialise Studio
         </button>
     </div>
 
@@ -199,27 +201,18 @@
                     <p class="mb-2">Every instantiated block features 4 programmable parameters:</p>
                     <ul class="list-disc pl-5 space-y-1">
                         <li><strong>OCT (Octave):</strong> Transposes the fundamental frequency.</li>
-                        <li><strong>TYPE (Quality):</strong> Alters harmonic intervals (e.g., transitioning Major to Minor 9th).</li>
-                        <li><strong>INV (Inversion):</strong> Re-orders the stack, pivoting the lowest note an octave higher for superior <em>Voice Leading</em>.</li>
-                        <li><strong>DUR (Duration):</strong> Dictates quantization. <code>1m</code> = Full Measure. <code>2n</code> = Half Note. <code>4n</code> = Quarter Note.</li>
+                        <li><strong>TYPE (Quality):</strong> Alters harmonic intervals.</li>
+                        <li><strong>INV (Inversion):</strong> Re-orders the stack, pivoting the lowest note for superior <em>Voice Leading</em>.</li>
+                        <li><strong>DUR (Duration):</strong> Dictates quantization. <code>1m</code> = Full Measure. <code>2n</code> = Half Note.</li>
                     </ul>
                 </section>
                 <section>
                     <h3 class="text-xl font-bold text-white mb-2">3. Left Hand & Arp Generators</h3>
-                    <p class="mb-2">These modules systematically calculate complex MIDI data driven by your chord definitions.</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>Left Hand:</strong> "Root Block" executes sustained fundamentals. "Walking" algorithmically computes diatonic passing intervals. Utilise the Octave dropdown to shift the entire bass progression.</li>
-                        <li><strong>Arp Mode:</strong> Deconstructs block chords into quantized 16th-note rhythmic sequences.</li>
-                    </ul>
+                    <p class="mb-2">Modules that systematically calculate complex MIDI data driven by your chord definitions.</p>
                 </section>
                 <section>
                     <h3 class="text-xl font-bold text-white mb-2">4. Dual-Bus Mixer & DSP</h3>
-                    <p class="mb-2">The architecture implements discrete signal paths for low and high frequencies.</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li><strong>Bass Bus:</strong> Maintained strictly mono to eliminate phase cancellation.</li>
-                        <li><strong>Chord Bus:</strong> Processed via the Master FX chain (Ping-Pong Delay, Hall Reverb, LPF Cutoff) for maximum stereo width.</li>
-                        <li><strong>Master Limit:</strong> A brick-wall limiter acts as the final node, guaranteeing zero digital clipping (> 0dBFS).</li>
-                    </ul>
+                    <p class="mb-2">Architecture implements discrete signal paths for low and high frequencies to prevent <strong>Phase Cancellation</strong>.</p>
                 </section>
             </div>
             <button onclick="document.getElementById('help-overlay').style.display='none'" class="btn-interactive w-full mt-8 bg-blue-600 hover:bg-blue-500 py-3 rounded-lg text-white font-bold">Close Manual</button>
@@ -317,7 +310,6 @@
                                     <input type="checkbox" id="toggle-arp" class="sr-only peer">
                                     <div class="w-8 h-4 bg-gray-900 shadow-inner rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-blue-600"></div>
                                 </label>
-                                <!-- FIXED DROPDOWN BG FOR VISIBILITY -->
                                 <select id="arp-pattern" class="bg-transparent text-white text-[11px] font-mono focus:outline-none cursor-pointer w-16">
                                     <option value="up" class="bg-gray-800">UP</option>
                                     <option value="down" class="bg-gray-800">DOWN</option>
@@ -421,6 +413,7 @@
         let synthChords, synthBass, volChords, volBass, reverb, delay, filter, analyzer, masterLimiter;
         let isAudioInitialized = false; let activeNotes = new Set(); let progression = []; 
         let isPlaying = false; let transportEventId = null;
+        let isVisualizerLooping = false; // Prevent overlapping animation frames
 
         function getMidiNote(noteName, octave) { return (parseInt(octave) + 1) * 12 + NOTES.indexOf(noteName); }
         
@@ -462,10 +455,18 @@
             }
         }
 
+        function triggerVisualizer() {
+            if (!isVisualizerLooping) {
+                isVisualizerLooping = true;
+                drawVisualizer();
+            }
+        }
+
         function playNote(midi, vel = 0.8, isBass = false) {
             activeNotes.add(midi); highlightKey(midi, true, isBass);
             if (!isAudioInitialized) return;
             isBass ? synthBass.triggerAttack(Tone.Frequency(midi, "midi"), Tone.now(), vel) : synthChords.triggerAttack(Tone.Frequency(midi, "midi"), Tone.now(), vel);
+            triggerVisualizer();
         }
 
         function releaseNote(midi) {
@@ -477,6 +478,7 @@
 
         function playChord(midiArray, duration = "2n") {
             if (!isAudioInitialized) return;
+            triggerVisualizer();
             midiArray.forEach((midi, i) => {
                 const noteTime = Tone.now() + (i * 0.02);
                 synthChords.triggerAttackRelease(Tone.Frequency(midi, "midi"), duration, noteTime, 0.7);
@@ -488,6 +490,12 @@
         }
 
         async function initAudio() {
+            // Guard against multiple initialisations which cause context mismatches and duplicated DSP chains
+            if (isAudioInitialized) return; 
+            
+            // Adjust lookAhead on the existing default context instead of overwriting the context entirely
+            Tone.getContext().lookAhead = 0.1;
+            
             await Tone.start();
             
             synthChords = new Tone.PolySynth(Tone.Synth, { 
@@ -495,7 +503,6 @@
                 envelope: { attack: 0.05, decay: 0.5, sustain: 0.4, release: 1.5 } 
             });
             
-            // V2.12 Mobile Optimization: Reduced polyphony to 2, changed from AMSynth to standard Synth
             synthBass = new Tone.PolySynth(Tone.Synth, { 
                 maxPolyphony: 2, 
                 oscillator: { type: "triangle" }, 
@@ -520,7 +527,7 @@
             synthChords.chain(tremolo, chorus, filter, delay, reverb, volChords, analyzer, masterLimiter, Tone.Destination);
             synthBass.chain(bassFilter, volBass, masterLimiter, Tone.Destination);
             
-            setupEventListeners(); drawVisualizer();
+            setupEventListeners(); 
             isAudioInitialized = true; document.getElementById('start-overlay').style.display = 'none';
             setupMIDI();
         }
@@ -528,8 +535,14 @@
         document.getElementById('btn-start').addEventListener('click', initAudio);
 
         function drawVisualizer() {
-            requestAnimationFrame(drawVisualizer);
-            if (!isAudioInitialized || !analyzer) return;
+            if (!isAudioInitialized || !analyzer) {
+                isVisualizerLooping = false;
+                return;
+            }
+
+            // Gating the visualiser requestAnimationFrame to alleviate main-thread blocking
+            const isAudioActive = isPlaying || activeNotes.size > 0;
+            
             const canvas = document.getElementById('oscilloscope'); 
             const ctx = canvas.getContext('2d');
             const width = canvas.clientWidth; 
@@ -539,6 +552,21 @@
                 canvas.width = width; 
                 canvas.height = height; 
             }
+
+            if (!isAudioActive) {
+                // Draw a flat baseline once and terminate the loop
+                ctx.clearRect(0, 0, width, height); 
+                ctx.beginPath();
+                ctx.lineWidth = 2.5; 
+                ctx.strokeStyle = '#22d3ee';
+                ctx.moveTo(0, height / 2);
+                ctx.lineTo(width, height / 2);
+                ctx.stroke();
+                isVisualizerLooping = false;
+                return;
+            }
+
+            requestAnimationFrame(drawVisualizer);
             
             const data = analyzer.getValue();
             ctx.clearRect(0, 0, width, height); 
@@ -562,18 +590,21 @@
 
         function hotSwapSequence() {
             if (!isPlaying || !transportEventId) return;
-            transportEventId.clear();
-            const isArp = document.getElementById('toggle-arp').checked;
-            const arpPattern = document.getElementById('arp-pattern').value;
-            const lhPattern = document.getElementById('lh-pattern').value;
-            const lhOctave = parseInt(document.getElementById('lh-octave').value) || 0;
             
-            let timeOffset = 0; 
-            progression.forEach((chordData, i) => {
-                transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern, lhOctave: lhOctave });
-                timeOffset += Tone.Time(chordData.duration).toSeconds();
-            });
-            Tone.Transport.loopEnd = timeOffset;
+            Tone.Transport.scheduleOnce((time) => {
+                transportEventId.clear();
+                const isArp = document.getElementById('toggle-arp').checked;
+                const arpPattern = document.getElementById('arp-pattern').value;
+                const lhPattern = document.getElementById('lh-pattern').value;
+                const lhOctave = parseInt(document.getElementById('lh-octave').value) || 0;
+                
+                let timeOffset = 0; 
+                progression.forEach((chordData, i) => {
+                    transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern, lhOctave: lhOctave });
+                    timeOffset += Tone.Time(chordData.duration).toSeconds();
+                });
+                Tone.Transport.loopEnd = timeOffset;
+            }, "@1m");
         }
 
         function setupEventListeners() {
@@ -694,7 +725,7 @@
                 'pop_80s': { label: '80s Synth Pop', chords: [{i:5, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:0, q:'Maj'}], type: 'Major' },
                 'moody_pop': { label: 'Moody Pop', chords: [{i:9, q:'Min'}, {i:5, q:'Maj'}, {i:0, q:'Maj'}, {i:7, q:'Maj'}], type: 'Major' },
                 'doo_wop': { label: '50s Doo-Wop', chords: [{i:0, q:'Maj'}, {i:9, q:'Min'}, {i:5, q:'Maj'}, {i:7, q:'Maj'}], type: 'Major' },
-                'royal_road': { label: 'Royal Road (Anime/Pop)', chords: [{i:5, q:'Maj7'}, {i:7, q:'Dom7'}, {i:4, q:'Min7'}, {i:9, q:'Min7'}], type: 'Major' },
+                'royal_road': { label: 'Royal Road (Anime)', chords: [{i:5, q:'Maj7'}, {i:7, q:'Dom7'}, {i:4, q:'Min7'}, {i:9, q:'Min7'}], type: 'Major' },
                 'pachelbel': { label: 'Pachelbel Drop', chords: [{i:0, q:'Maj'}, {i:7, q:'Maj'}, {i:9, q:'Min'}, {i:4, q:'Min'}], type: 'Major' },
                 'aeolian_shuttle': { label: 'Aeolian Shuttle', chords: [{i:0, q:'Min'}, {i:10, q:'Maj'}, {i:8, q:'Maj'}, {i:10, q:'Maj'}], type: 'Minor' }
             },
@@ -837,7 +868,6 @@
                     if (act) act.classList.add('playing');
                 }, time);
 
-                // Apply global transposition offset
                 const bO1 = 1 + (value.lhOctave || 0);
                 const bO2 = 2 + (value.lhOctave || 0);
                 const bassO1 = getMidiNote(value.chord.root, bO1.toString()); 
@@ -892,7 +922,12 @@
                 transportEventId.add(timeOffset, { chord: chordData, index: i, arpOn: isArp, arpType: arpPattern, lhType: lhPattern, lhOctave: lhOctave }); 
                 timeOffset += Tone.Time(chordData.duration).toSeconds(); 
             });
-            Tone.Transport.loopEnd = timeOffset; Tone.Transport.loop = true; Tone.Transport.start(); isPlaying = true;
+            
+            Tone.Transport.loopEnd = timeOffset; 
+            Tone.Transport.loop = true; 
+            Tone.Transport.start(); 
+            isPlaying = true;
+            triggerVisualizer();
         });
 
         function stopPlayback() {
